@@ -6,7 +6,7 @@ As its name suggests, RobloxAPID runs in the background, monitors updates from t
 
 RobloxAPID requires an account with [bot userrights](https://community.fandom.com/wiki/Help:Bots) to be used, meaning you will need to have the flag enabled.
 
-*RobloxAPID is also available as an opt-in service at no cost. All that's required is that your wiki is considered reputable. You can DM t7ru on Discord to opt in.*
+***RobloxAPID is also available as an opt-in service at no cost. All that's required is that your wiki is considered reputable. You can DM t7ru on Discord to opt in.***
 
 | Wikis using RobloxAPID | |
 | :------------------: | :--------------------: |
@@ -22,6 +22,12 @@ RobloxAPID requires an account with [bot userrights](https://community.fandom.co
 - Open source: audit and extend it on GitHub.
 
 ...and of course, you don't need to host it at all if you choose to opt-in with us!
+
+## Currently supported endpoints
+- **Open Cloud**
+  - Users
+- **Legacy**
+  - Badges
 
 ## Installation
 
