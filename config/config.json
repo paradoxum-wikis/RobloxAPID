@@ -12,11 +12,15 @@
     "dynamicEndpoints": {
         "categoryPrefix": "robloxapid-queue",
         "apiMap": {
-            "badges": "https://badges.roblox.com/v1/badges/%s"
+            "badges": "https://badges.roblox.com/v1/badges/%s",
+            "users": "https://apis.roblox.com/cloud/v2/users/%s"
         },
         "refreshIntervals": {
             "badges": "30m",
             "about": "168h"
         }
+    },
+    "openCloud": {
+        "apiKey": "YOUR_OPEN_CLOUD_KEY"
     }
 }

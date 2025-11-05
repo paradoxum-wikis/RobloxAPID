@@ -10,6 +10,7 @@ type Config struct {
 	Server           ServerConfig           `json:"server"`
 	Wiki             WikiConfig             `json:"wiki"`
 	DynamicEndpoints DynamicEndpointsConfig `json:"dynamicEndpoints"`
+	OpenCloud        OpenCloudConfig        `json:"openCloud"`
 }
 
 type ServerConfig struct {
@@ -29,6 +30,10 @@ type DynamicEndpointsConfig struct {
 	CategoryPrefix   string            `json:"categoryPrefix"`
 	APIMap           map[string]string `json:"apiMap"`
 	RefreshIntervals map[string]string `json:"refreshIntervals"`
+}
+
+type OpenCloudConfig struct {
+	APIKey string `json:"apiKey"`
 }
 
 func LoadConfig(path string) (*Config, error) {

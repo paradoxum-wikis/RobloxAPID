@@ -310,7 +310,25 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	url := fmt.Sprintf(urlTemplate, id)
 	path := fmt.Sprintf("%s-%s.json", endpointType, id)
 
-	newData, err := fetcher.Fetch(url)
+	var (
+		newData []byte
+		err     error
+	)
+
+	switch endpointType {
+	case "users":
+		if cfg.OpenCloud.APIKey == "" {
+			return fmt.Errorf("open cloud api key required for %s", endpointType)
+		}
+		headers := map[string]string{
+			"x-api-key": cfg.OpenCloud.APIKey,
+			"Accept":    "application/json",
+		}
+		newData, err = fetcher.FetchWithHeaders(url, headers)
+	default:
+		newData, err = fetcher.Fetch(url)
+	}
+
 	if err != nil {
 		return fmt.Errorf("error fetching data from %s: %v", url, err)
 	}
