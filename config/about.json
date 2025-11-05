@@ -1,0 +1,6 @@
+{
+	"description": "A daemon that bridges the Roblox API to Fandom wikis.",
+	"license": "GNU Affero General Public License v3.0",
+	"name": "RobloxAPID",
+	"source": "https://github.com/paradoxum-wikis/RobloxAPID"
+}
