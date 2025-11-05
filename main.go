@@ -16,93 +16,17 @@ import (
 	"robloxapid/pkg/wiki"
 )
 
-const roapiModuleVersion = "0.0.8"
-const roapiModuleContent = `-- 0.0.8
--- https://github.com/paradoxum-wikis/RobloxAPID
-local roapid = {}
-local function get_by_path(tbl, parts)
-    local cur = tbl
-    for i = 1, #parts do
-        if type(cur) ~= "table" then
-            return nil
-        end
-        cur = cur[parts[i]]
-    end
-    return cur
-end
+const roapiModuleVersion = "0.0.9"
 
-local function build_title(resource, id)
-    if id == "" then
-        return string.format("Module:roapid/%s.json", resource)
-    else
-        return string.format("Module:roapid/%s-%s.json", resource, id)
-    end
-end
+var roapiModuleContent string
 
-local function get_queue_category(resource, id)
-    if resource == "badges" and id ~= "" then
-        return string.format("[[Category:robloxapid-queue-badges-%s]]", id)
-    end
-    return ""
-end
-
-function roapid._get(frame, resource, needs_id)
-    local args = frame.args
-    local id = needs_id and (args[1] or "") or ""
-    local path = {}
-    local start_idx = needs_id and 2 or 1
-    local i = start_idx
-    while args[tostring(i)] do
-        local v = args[tostring(i)]
-        if v and v ~= "" then
-            path[#path + 1] = v
-        end
-        i = i + 1
-    end
-
-    if needs_id and id == "" then
-        return ""
-    end
-
-    local module_name = build_title(resource, id)
-    local ok, data = pcall(mw.loadJsonData, module_name)
-
-    if not ok or type(data) ~= "table" then
-        return get_queue_category(resource, id)
-    end
-
-    if #path == 0 then
-        local json_ok, json = pcall(mw.text.jsonEncode, data)
-        return json_ok and json or mw.text.jsonEncode(data)
-    end
-
-    local value = get_by_path(data, path)
-    if value == nil then
-        return ""
-    end
-
-    if type(value) == "table" then
-        local json_ok, json = pcall(mw.text.jsonEncode, value)
-        return json_ok and json or mw.text.jsonEncode(value)
-    else
-        return tostring(value)
-    end
-end
-
-function roapid.badges(frame)
-    local id = frame.args[1]
-    if not id or id == "" then
-        return roapid._get(frame, "badges", false)
-    end
-    return roapid._get(frame, "badges", true)
-end
-
-function roapid.about(frame)
-    return roapid._get(frame, "about", false)
-end
-
-return roapid
-`
+func init() {
+	data, err := os.ReadFile("pkg/wiki/roapid.lua")
+	if err != nil {
+		log.Fatalf("Failed to load roapid.lua: %v", err)
+	}
+	roapiModuleContent = string(data)
+}
 
 type endpointState struct {
 	endpointType string
