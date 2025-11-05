@@ -16,6 +16,7 @@ RobloxAPID requires an account with [bot userrights](https://community.fandom.co
 - Lightweight: a single Go binary with very efficient resource usage.
 - Low-maintenance: configurable intervals and automated refreshes.
 - Fast: periodically writes JSON pages that are consumed by a tiny Lua module (`Module:Roapid`) so editors can embed data with `{{#invoke:roapid|...}}`.
+- Instant: as data are cached natively on the wiki, pulling data are instant.
 - Reliable updates: detects data changes and purges caches after updates so pages stay fresh.
 - Fandom-friendly: works on both FandomDesktop and FandomMobile skins.
 - Open source: audit and extend it on GitHub.
