@@ -14,18 +14,19 @@ import (
 	"robloxapid/pkg/fetcher"
 	"robloxapid/pkg/storage"
 	"robloxapid/pkg/wiki"
+
+	_ "embed"
 )
+
+//go:embed pkg/wiki/roapid.lua
+var roapidLuaData string
 
 const roapiModuleVersion = "0.0.9"
 
 var roapiModuleContent string
 
 func init() {
-	data, err := os.ReadFile("pkg/wiki/roapid.lua")
-	if err != nil {
-		log.Fatalf("Failed to load roapid.lua: %v", err)
-	}
-	roapiModuleContent = string(data)
+	roapiModuleContent = roapidLuaData
 }
 
 type endpointState struct {
