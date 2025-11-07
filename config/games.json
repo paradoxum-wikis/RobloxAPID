@@ -1,0 +1,53 @@
+{
+  "description": "Legacy games Roblox API (up to 50 IDs per call).",
+  "usage": {
+    "full_record": "{{#invoke:roapid|games|<universeId>}}",
+    "first_entry_field": "{{#invoke:roapid|games|<universeId>|data|1|name}}",
+    "refund_policy_field": "{{#invoke:roapid|games|<universeId>|data|1|refundPolicy|policyText}}"
+  },
+  "fields": [
+    "data",
+    "data.1.id",
+    "data.1.rootPlaceId",
+    "data.1.name",
+    "data.1.description",
+    "data.1.sourceName",
+    "data.1.sourceDescription",
+    "data.1.creator.id",
+    "data.1.creator.name",
+    "data.1.creator.type",
+    "data.1.creator.isRNVAccount",
+    "data.1.creator.hasVerifiedBadge",
+    "data.1.price",
+    "data.1.allowedGearGenres",
+    "data.1.allowedGearCategories",
+    "data.1.isGenreEnforced",
+    "data.1.copyingAllowed",
+    "data.1.playing",
+    "data.1.visits",
+    "data.1.maxPlayers",
+    "data.1.created",
+    "data.1.updated",
+    "data.1.studioAccessToApisAllowed",
+    "data.1.createVipServersAllowed",
+    "data.1.universeAvatarType",
+    "data.1.genre",
+    "data.1.genre_l1",
+    "data.1.genre_l2",
+    "data.1.isAllGenre",
+    "data.1.isFavoritedByUser",
+    "data.1.favoritedCount",
+    "data.1.licenseDescription",
+    "data.1.refundLink",
+    "data.1.localizedFiatPrice",
+    "data.1.refundPolicy.policyText",
+    "data.1.refundPolicy.learnMoreBaseUrl",
+    "data.1.refundPolicy.locale",
+    "data.1.refundPolicy.articleId"
+  ],
+  "examples": [
+    "{{#invoke:roapid|games|1176784616}}",
+    "{{#invoke:roapid|games|1176784616|data|1|name}}",
+    "{{#invoke:roapid|games|1176784616|data|1|refundPolicy|policyText}}"
+  ]
+}

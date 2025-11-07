@@ -33,6 +33,7 @@ RobloxAPID requires an account with [bot userrights](https://community.fandom.co
   - Places
 - **Legacy**
   - Badges
+  - Games
 
 ## Installation
 
@@ -82,7 +83,8 @@ Main configuration file:
             "users": "1h",
             "groups": "1h",
             "universes": "1h",
-            "places": "1h"
+            "places": "1h",
+            "games": "1h",
         }
     }
 }
@@ -103,7 +105,7 @@ Static about information, if you're hosting publicly, do not change it:
 }
 ```
 
-### badges.json / users.json / groups.json / universes.json / places.json
+### badges.json / users.json / groups.json / universes.json / places.json / games.json
 Static usage guides for the API endpoints. Each file documents relevant information such as usage, description, fields, and examples.
 
 They all sync to `Module:roapid/<endpoint>.json` so editors can surface instructions directly on the wiki.

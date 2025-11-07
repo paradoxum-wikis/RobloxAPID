@@ -24,7 +24,7 @@ var staticDocs = []staticDoc{
 	{
 		filename: "badges.json",
 		wikiSlug: "badges.json",
-		summary:  "Automated sync of badges usage guide",
+		summary:  "Automated sync of legacy badges usage guide",
 	},
 	{
 		filename: "users.json",
@@ -45,6 +45,11 @@ var staticDocs = []staticDoc{
 		filename: "places.json",
 		wikiSlug: "places.json",
 		summary:  "Automated sync of places usage guide",
+	},
+	{
+		filename: "games.json",
+		wikiSlug: "games.json",
+		summary:  "Automated sync of legacy games API guide",
 	},
 }
 

@@ -1,5 +1,5 @@
 {
-  "description": "Roblox badges API integration yippee!",
+  "description": "Legacy Roblox badges API integration yippee!",
   "usage": {
     "full_record": "{{#invoke:roapid|badges|<badgeId>}}",
     "field": "{{#invoke:roapid|badges|<badgeId>|displayName}}",

@@ -1,4 +1,4 @@
--- 0.0.11
+-- 0.0.13
 -- https://github.com/paradoxum-wikis/RobloxAPID
 local roapid = {}
 
@@ -6,7 +6,18 @@ local function getByPath(tbl, parts)
     local cur = tbl
     for i = 1, #parts do
         if type(cur) ~= "table" then return nil end
-        cur = cur[parts[i]]
+        local key = parts[i]
+        local nextValue = cur[key]
+        if nextValue == nil then
+            local numeric = tonumber(key)
+            if numeric then
+                nextValue = cur[numeric]
+            end
+        end
+        if nextValue == nil then
+            return nil
+        end
+        cur = nextValue
     end
     return cur
 end
@@ -121,6 +132,11 @@ end
 function roapid.places(frame)
     local id = frame.args[1]
     return roapid._get(frame, "places", id and id ~= "")
+end
+
+function roapid.games(frame)
+    local id = frame.args[1]
+    return roapid._get(frame, "games", id and id ~= "")
 end
 
 function roapid.about(frame)

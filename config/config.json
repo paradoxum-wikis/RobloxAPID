@@ -16,7 +16,8 @@
             "users": "https://apis.roblox.com/cloud/v2/users/%s",
             "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
             "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
-            "places": "https://apis.roblox.com/cloud/v2/%s"
+            "places": "https://apis.roblox.com/cloud/v2/%s",
+            "games": "https://games.roblox.com/v1/games?universeIds=%s"
         },
         "refreshIntervals": {
             "badges": "30m",
@@ -24,7 +25,8 @@
             "users": "1h",
             "groups": "1h",
             "universes": "1h",
-            "places": "1h"
+            "places": "1h",
+            "games": "1h"
         }
     },
     "openCloud": {
