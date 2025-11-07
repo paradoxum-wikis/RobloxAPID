@@ -56,7 +56,12 @@ local function buildPathError(resource, id, path)
     if #path > 0 then
         segments[#segments + 1] = table.concat(path, " → ")
     end
-    return string.format("Roapid: field path not found (%s).", table.concat(segments, " | "))
+    local moduleName = buildTitle(resource, id or "")
+    return string.format(
+        "Field path not found (%s), [[%s|see fields]].",
+        table.concat(segments, " | "),
+        moduleName
+    )
 end
 
 function roapid._get(frame, resource, needsId)
