@@ -1,4 +1,4 @@
--- 0.0.10
+-- 0.0.11
 -- https://github.com/paradoxum-wikis/RobloxAPID
 local roapid = {}
 
@@ -83,6 +83,16 @@ end
 function roapid.groups(frame)
     local id = frame.args[1]
     return roapid._get(frame, "groups", id and id ~= "")
+end
+
+function roapid.universes(frame)
+    local id = frame.args[1]
+    return roapid._get(frame, "universes", id and id ~= "")
+end
+
+function roapid.places(frame)
+    local id = frame.args[1]
+    return roapid._get(frame, "places", id and id ~= "")
 end
 
 function roapid.about(frame)

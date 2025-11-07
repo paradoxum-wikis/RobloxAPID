@@ -1,14 +1,34 @@
 {
   "description": "Roblox badges API integration yippee!",
   "usage": {
-    "specific_badge": "{{#invoke:roapid|badges|badge_id}} - Replace 'badge_id' with the numeric Roblox badge ID to get full badge data.",
-    "index": "{{#invoke:roapid|badges}} - Returns this usage guide.",
-    "subfields": "{{#invoke:roapid|badges|badge_id|field}} - Access a specific field (e.g., 'description', 'statistics').",
-    "nested": "{{#invoke:roapid|badges|badge_id|field|subfield}} - Drill deeper, dehehe (e.g., 'statistics|awardedCount')."
+    "full_record": "{{#invoke:roapid|badges|<badgeId>}}",
+    "field": "{{#invoke:roapid|badges|<badgeId>|displayName}}",
+    "nested_field": "{{#invoke:roapid|badges|<badgeId>|statistics|awardedCount}}",
+    "index": "{{#invoke:roapid|badges}} - Returns this usage guide."
   },
+  "fields": [
+    "id",
+    "name",
+    "description",
+    "displayName",
+    "displayDescription",
+    "enabled",
+    "iconImageId",
+    "displayIconImageId",
+    "created",
+    "updated",
+    "statistics",
+    "statistics.pastDayAwardedCount",
+    "statistics.awardedCount",
+    "statistics.winRatePercentage",
+    "awardingUniverse",
+    "awardingUniverse.id",
+    "awardingUniverse.name",
+    "awardingUniverse.rootPlaceId"
+  ],
   "examples": [
     "{{#invoke:roapid|badges|3964419828587997}}",
-    "{{#invoke:roapid|badges|3964419828587997|description}}",
+    "{{#invoke:roapid|badges|3964419828587997|displayDescription}}",
     "{{#invoke:roapid|badges|3964419828587997|statistics|awardedCount}}"
   ]
 }

@@ -9,7 +9,7 @@ import (
 	"robloxapid/pkg/wiki"
 )
 
-const roapiModuleVersion = "0.0.10"
+const roapiModuleVersion = "0.0.11"
 
 var roapiModuleContent = wiki.RoapidLua
 
@@ -51,10 +51,10 @@ func main() {
 		aboutInterval = dataInterval
 	}
 
-	badgesInterval, err := cfg.GetRefreshInterval("badges")
+	documentationInterval, err := cfg.GetRefreshInterval("badges")
 	if err != nil {
-		log.Printf("Invalid badges refresh interval: %v; falling back to %v", err, dataInterval)
-		badgesInterval = dataInterval
+		log.Printf("Invalid documentation refresh interval: %v; falling back to %v", err, dataInterval)
+		documentationInterval = dataInterval
 	}
 
 	log.Printf("Starting with intervals: categories every %v, default refresh every %v", categoryInterval, dataInterval)
@@ -62,8 +62,8 @@ func main() {
 	if err := processAboutEndpoint(wikiClient, cfg); err != nil {
 		log.Printf("Initial about sync failed: %v", err)
 	}
-	if err := processBadgesRoot(wikiClient, cfg); err != nil {
-		log.Printf("Initial badges root sync failed: %v", err)
+	if err := syncStaticDocs(wikiClient, cfg); err != nil {
+		log.Printf("Initial documentation sync failed: %v", err)
 	}
 
 	go func() {
@@ -80,14 +80,14 @@ func main() {
 	}()
 
 	go func() {
-		if badgesInterval <= 0 {
+		if documentationInterval <= 0 {
 			return
 		}
-		ticker := time.NewTicker(badgesInterval)
+		ticker := time.NewTicker(documentationInterval)
 		defer ticker.Stop()
 		for range ticker.C {
-			if err := processBadgesRoot(wikiClient, cfg); err != nil {
-				log.Printf("Scheduled badges root sync failed: %v", err)
+			if err := syncStaticDocs(wikiClient, cfg); err != nil {
+				log.Printf("Scheduled documentation sync failed: %v", err)
 			}
 		}
 	}()

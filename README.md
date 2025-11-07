@@ -29,6 +29,8 @@ RobloxAPID requires an account with [bot userrights](https://community.fandom.co
 - **Open Cloud**
   - Users
   - Groups
+  - Universes
+  - Places (ID format `universeId-placeId`)
 - **Legacy**
   - Badges
 
@@ -70,15 +72,22 @@ Main configuration file:
         "apiMap": {
             "badges": "https://badges.roblox.com/v1/badges/%s",
             "users": "https://apis.roblox.com/cloud/v2/users/%s",
-            "groups": "https://apis.roblox.com/cloud/v2/groups/%s"
+            "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
+            "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
+            "places": "https://apis.roblox.com/cloud/v2/%s"
         },
         "refreshIntervals": {
             "badges": "30m",
-            "about": "168h"
+            "about": "168h",
+            "users": "1h",
+            "groups": "1h",
+            "universes": "1h",
+            "places": "1h"
         }
     }
 }
 ```
+- Add new queue categories as `Category:robloxapid-queue-<endpoint>-<id>`. For places, combine the IDs as `universeId-placeId` (e.g., `Category:robloxapid-queue-places-12345-67890`).
 - `categoryCheckInterval`: How often to check for new categories (this is how we know what to fetch).
 - `dataRefreshInterval`: Default refresh interval for endpoints.
 - `apiMap`: Maps endpoint types to API URLs (use `%s` for ID placeholder).
@@ -113,6 +122,9 @@ Static badges usage guide:
   ]
 }
 ```
+
+### users.json / groups.json / universes.json / places.json
+Static usage guides for the Open Cloud endpoints. Each file documents queue categories, example invokes, and available fields. They sync to `Module:roapid/<endpoint>.json` just like `badges.json`, so editors can surface instructions directly on the wiki.
 
 ## Usage
 

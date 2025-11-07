@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"robloxapid/pkg/checker"
 	"robloxapid/pkg/config"
@@ -13,22 +14,56 @@ import (
 	"robloxapid/pkg/wiki"
 )
 
+type staticDoc struct {
+	filename string
+	wikiSlug string
+	summary  string
+}
+
+var staticDocs = []staticDoc{
+	{
+		filename: "badges.json",
+		wikiSlug: "badges.json",
+		summary:  "Automated sync of badges usage guide",
+	},
+	{
+		filename: "users.json",
+		wikiSlug: "users.json",
+		summary:  "Automated sync of users usage guide",
+	},
+	{
+		filename: "groups.json",
+		wikiSlug: "groups.json",
+		summary:  "Automated sync of groups usage guide",
+	},
+	{
+		filename: "universes.json",
+		wikiSlug: "universes.json",
+		summary:  "Automated sync of universes usage guide",
+	},
+	{
+		filename: "places.json",
+		wikiSlug: "places.json",
+		summary:  "Automated sync of places usage guide",
+	},
+}
+
 func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string) error {
 	urlTemplate, ok := cfg.DynamicEndpoints.APIMap[endpointType]
 	if !ok {
 		return fmt.Errorf("unknown endpoint type: %s", endpointType)
 	}
 
-	url := fmt.Sprintf(urlTemplate, id)
+	url, err := formatEndpointURL(endpointType, id, urlTemplate)
+	if err != nil {
+		return err
+	}
 	path := fmt.Sprintf("%s-%s.json", endpointType, id)
 
-	var (
-		newData []byte
-		err     error
-	)
+	var newData []byte
 
 	switch endpointType {
-	case "users", "groups":
+	case "users", "groups", "universes", "places":
 		if cfg.OpenCloud.APIKey == "" {
 			return fmt.Errorf("open cloud api key required for %s", endpointType)
 		}
@@ -114,33 +149,31 @@ func processAboutEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config) error
 	return nil
 }
 
-func processBadgesRoot(wikiClient *wiki.WikiClient, cfg *config.Config) error {
-	const badgesFilename = "badges.json"
-	localPath := filepath.Join("config", badgesFilename)
+func processStaticDoc(wikiClient *wiki.WikiClient, cfg *config.Config, doc staticDoc) error {
+	localPath := filepath.Join("config", doc.filename)
 
 	content, err := os.ReadFile(localPath)
 	if err != nil {
 		return fmt.Errorf("failed to read %s: %w", localPath, err)
 	}
 
-	hasChanged, err := checker.HasChanged(badgesFilename, content)
+	hasChanged, err := checker.HasChanged(doc.filename, content)
 	if err != nil {
-		return fmt.Errorf("error checking changes for %s: %w", badgesFilename, err)
+		return fmt.Errorf("error checking changes for %s: %w", doc.filename, err)
 	}
 	if !hasChanged {
-		log.Printf("%s unchanged; skipping wiki update.", badgesFilename)
+		log.Printf("%s unchanged; skipping wiki update.", doc.filename)
 		return nil
 	}
 
-	dataToPush, err := storage.Save(badgesFilename, content)
+	dataToPush, err := storage.Save(doc.filename, content)
 	if err != nil {
-		return fmt.Errorf("error saving badges data: %w", err)
+		return fmt.Errorf("error saving %s data: %w", doc.filename, err)
 	}
 
-	wikiTitle := fmt.Sprintf("%s:roapid/badges.json", cfg.Wiki.Namespace)
-	summary := "Automated sync of badges index"
-	if err := wikiClient.Push(wikiTitle, string(dataToPush), summary); err != nil {
-		return fmt.Errorf("error pushing badges index to wiki: %w", err)
+	wikiTitle := fmt.Sprintf("%s:roapid/%s", cfg.Wiki.Namespace, doc.wikiSlug)
+	if err := wikiClient.Push(wikiTitle, string(dataToPush), doc.summary); err != nil {
+		return fmt.Errorf("error pushing %s to wiki: %w", doc.filename, err)
 	}
 
 	if err := wikiClient.PurgePages([]string{wikiTitle}); err != nil {
@@ -149,4 +182,34 @@ func processBadgesRoot(wikiClient *wiki.WikiClient, cfg *config.Config) error {
 
 	log.Printf("Successfully synced %s", wikiTitle)
 	return nil
+}
+
+func syncStaticDocs(wikiClient *wiki.WikiClient, cfg *config.Config) error {
+	var firstErr error
+	for _, doc := range staticDocs {
+		if err := processStaticDoc(wikiClient, cfg, doc); err != nil {
+			log.Printf("Error syncing %s: %v", doc.filename, err)
+			if firstErr == nil {
+				firstErr = err
+			}
+		}
+	}
+	return firstErr
+}
+
+func formatEndpointURL(endpointType, id, template string) (string, error) {
+	var formatArg string
+
+	switch endpointType {
+	case "places":
+		parts := strings.SplitN(id, "-", 2)
+		if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+			return "", fmt.Errorf("invalid place identifier %q, expected universeId-placeId", id)
+		}
+		formatArg = fmt.Sprintf("universes/%s/places/%s", parts[0], parts[1])
+	default:
+		formatArg = id
+	}
+
+	return fmt.Sprintf(template, formatArg), nil
 }
