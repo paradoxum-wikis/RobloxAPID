@@ -1,5 +1,5 @@
 {
-  "description": "Legacy games Roblox API (up to 50 IDs per call).",
+  "description": "Legacy games Roblox API.",
   "usage": {
     "full_record": "{{#invoke:roapid|games|<universeId>}}",
     "first_entry_field": "{{#invoke:roapid|games|<universeId>|data|1|name}}",

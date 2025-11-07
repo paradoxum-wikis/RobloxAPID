@@ -17,11 +17,9 @@
     "displayIconImageId",
     "created",
     "updated",
-    "statistics",
     "statistics.pastDayAwardedCount",
     "statistics.awardedCount",
     "statistics.winRatePercentage",
-    "awardingUniverse",
     "awardingUniverse.id",
     "awardingUniverse.name",
     "awardingUniverse.rootPlaceId"
