@@ -30,6 +30,35 @@ local function getQueueNotice(resource, id)
     return cat ~= "" and (cat .. note) or note
 end
 
+local function stringify(value)
+    if type(value) == "table" then
+        local ok, json = pcall(mw.text.jsonEncode, value)
+        if ok then
+            return json
+        end
+        return mw.text.jsonEncode(value)
+    end
+    if value == nil then
+        return ""
+    end
+    return tostring(value)
+end
+
+local function buildPathError(resource, id, path)
+    local segments = {}
+    if resource and resource ~= "" then
+        if id and id ~= "" then
+            segments[#segments + 1] = string.format("%s/%s", resource, id)
+        else
+            segments[#segments + 1] = resource
+        end
+    end
+    if #path > 0 then
+        segments[#segments + 1] = table.concat(path, " → ")
+    end
+    return string.format("Roapid: field path not found (%s).", table.concat(segments, " | "))
+end
+
 function roapid._get(frame, resource, needsId)
     local args = frame.args
     local id = needsId and (args[1] or "") or ""
@@ -53,21 +82,15 @@ function roapid._get(frame, resource, needsId)
     end
 
     if #path == 0 then
-        local okJson, json = pcall(mw.text.jsonEncode, data)
-        return okJson and json or mw.text.jsonEncode(data)
+        return stringify(data)
     end
 
     local value = getByPath(data, path)
     if value == nil then
-        return getQueueNotice(resource, id)
+        return buildPathError(resource, id, path)
     end
 
-    if type(value) == "table" then
-        local okJson, json = pcall(mw.text.jsonEncode, value)
-        return okJson and json or mw.text.jsonEncode(value)
-    else
-        return tostring(value)
-    end
+    return stringify(value)
 end
 
 function roapid.badges(frame)
