@@ -18,16 +18,34 @@ type endpointState struct {
 }
 
 func parseCategory(category, prefix string) (endpointType, id string, err error) {
+	normalized := normalizeCategory(category)
 	expectedPrefix := "Category:" + prefix + "-"
-	if len(category) < len(expectedPrefix) || !strings.EqualFold(category[:len(expectedPrefix)], expectedPrefix) {
+	if len(normalized) < len(expectedPrefix) || !strings.EqualFold(normalized[:len(expectedPrefix)], expectedPrefix) {
 		return "", "", fmt.Errorf("invalid category format: %s", category)
 	}
-	remainder := category[len(expectedPrefix):]
+	remainder := normalized[len(expectedPrefix):]
 	parts := strings.SplitN(remainder, "-", 2)
 	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
 		return "", "", fmt.Errorf("invalid category format: %s", category)
 	}
 	return parts[0], parts[1], nil
+}
+
+func normalizeCategory(category string) string {
+	replacer := strings.NewReplacer(
+		"\u2212", "−", // unicode minus
+		"\u2010", "‐", // hyphen
+		"\u2011", "‑", // nb hyphen
+		"\u2012", "‒", // figure dash
+		"\u2013", "–", // en dash
+		"\u2014", "—", // em dash
+		"\u2015", "―", // horizontal bar
+		",", "", // commas
+		"\u00a0", "", // nbsp
+		"\u202f", "", // nnbsp
+	)
+	trimmed := strings.TrimSpace(category)
+	return replacer.Replace(trimmed)
 }
 
 func updateSchedule(processed map[string]*endpointState, mu *sync.Mutex, category, endpointType string, cfg *config.Config, next time.Time) {
