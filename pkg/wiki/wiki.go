@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"cgt.name/pkg/go-mwclient"
 	"cgt.name/pkg/go-mwclient/params"
@@ -15,7 +17,9 @@ import (
 )
 
 type WikiClient struct {
-	client *mwclient.Client
+	client   *mwclient.Client
+	editMu   sync.Mutex
+	lastEdit time.Time
 }
 
 func NewWikiClient(apiURL, username, password string) (*WikiClient, error) {
@@ -68,6 +72,7 @@ func NewWikiClient(apiURL, username, password string) (*WikiClient, error) {
 }
 
 func (w *WikiClient) Push(title, content, summary string) error {
+	w.throttleEdit()
 	log.Printf("[DEBUG] wiki.Push: preparing to push page %s (summary: %s)", title, summary)
 	token, err := w.client.GetToken("csrf")
 	if err != nil {
@@ -92,6 +97,21 @@ func (w *WikiClient) Push(title, content, summary string) error {
 
 	log.Printf("[INFO] wiki.Push: successfully pushed %s", title)
 	return nil
+}
+
+func (w *WikiClient) throttleEdit() {
+	w.editMu.Lock()
+	defer w.editMu.Unlock()
+
+	now := time.Now()
+	if !w.lastEdit.IsZero() {
+		wait := time.Second - now.Sub(w.lastEdit)
+		if wait > 0 {
+			time.Sleep(wait)
+			now = time.Now()
+		}
+	}
+	w.lastEdit = now
 }
 
 func logJSON(label string, obj *jason.Object) {
