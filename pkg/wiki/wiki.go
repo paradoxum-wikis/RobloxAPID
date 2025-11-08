@@ -156,6 +156,43 @@ func (w *WikiClient) GetPageByName(pageName string) (string, error) {
 	return content, nil
 }
 
+func (w *WikiClient) PageExists(title string) (bool, error) {
+	p := params.Values{
+		"action":        "query",
+		"prop":          "info",
+		"titles":        title,
+		"format":        "json",
+		"formatversion": "2",
+	}
+
+	resp, err := w.client.Get(p)
+	if err != nil {
+		return false, err
+	}
+
+	pages, err := resp.GetObjectArray("query", "pages")
+	if err != nil {
+		if strings.Contains(err.Error(), "no value for key") {
+			return false, nil
+		}
+		return false, err
+	}
+	if len(pages) == 0 {
+		return false, nil
+	}
+
+	page := pages[0]
+	if missing, _ := page.GetBoolean("missing"); missing {
+		return false, nil
+	}
+	pageID, _ := page.GetInt64("pageid")
+	if pageID == -1 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
 // checks if Roapid module page exists and is at the required version.
 func (w *WikiClient) SetupRoapiModule(pageTitle, requiredVersion, content string) error {
 	log.Printf("Checking wiki page: %s", pageTitle)

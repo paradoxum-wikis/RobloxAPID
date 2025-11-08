@@ -96,13 +96,28 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 		return fmt.Errorf("error saving data to %s: %v", path, err)
 	}
 
+	wikiTitle := fmt.Sprintf("%s:roapid/%s-%s.json", cfg.Wiki.Namespace, endpointType, id)
+
+	shouldPush := hasChanged
 	if !hasChanged {
+		exists, err := wikiClient.PageExists(wikiTitle)
+		if err != nil {
+			log.Printf("Error checking if %s exists: %v", wikiTitle, err)
+		} else if !exists {
+			log.Printf("%s missing on wiki; forcing upload.", wikiTitle)
+			shouldPush = true
+		}
+	}
+
+	if !shouldPush {
 		log.Printf("No meaningful changes for %s (only roLastUpdated or none), skipping wiki push.", url)
+		if err := wikiClient.PurgeCategoryMembers(category); err != nil {
+			log.Printf("Error purging pages for %s: %v", category, err)
+		}
 		return nil
 	}
 
 	log.Printf("Meaningful changes detected for %s, pushing to wiki.", url)
-	wikiTitle := fmt.Sprintf("%s:roapid/%s-%s.json", cfg.Wiki.Namespace, endpointType, id)
 	summary := fmt.Sprintf("Automated update from %s", url)
 	err = wikiClient.Push(wikiTitle, string(dataToPush), summary)
 	if err != nil {
