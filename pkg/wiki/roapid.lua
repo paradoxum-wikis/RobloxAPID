@@ -1,4 +1,4 @@
--- 0.0.13
+-- 0.0.14
 -- https://github.com/paradoxum-wikis/RobloxAPID
 local roapid = {}
 
@@ -109,38 +109,18 @@ function roapid._get(frame, resource, needsId)
     return stringify(value)
 end
 
-function roapid.badges(frame)
-    local id = frame.args[1]
-    return roapid._get(frame, "badges", id and id ~= "")
+local function makeGetter(resource, needsId)
+    return function(frame)
+        return roapid._get(frame, resource, needsId)
+    end
 end
 
-function roapid.users(frame)
-    local id = frame.args[1]
-    return roapid._get(frame, "users", id and id ~= "")
-end
-
-function roapid.groups(frame)
-    local id = frame.args[1]
-    return roapid._get(frame, "groups", id and id ~= "")
-end
-
-function roapid.universes(frame)
-    local id = frame.args[1]
-    return roapid._get(frame, "universes", id and id ~= "")
-end
-
-function roapid.places(frame)
-    local id = frame.args[1]
-    return roapid._get(frame, "places", id and id ~= "")
-end
-
-function roapid.games(frame)
-    local id = frame.args[1]
-    return roapid._get(frame, "games", id and id ~= "")
-end
-
-function roapid.about(frame)
-    return roapid._get(frame, "about", false)
-end
+roapid.badges = makeGetter("badges", true)
+roapid.users = makeGetter("users", true)
+roapid.groups = makeGetter("groups", true)
+roapid.universes = makeGetter("universes", true)
+roapid.places = makeGetter("places", true)
+roapid.games = makeGetter("games", true)
+roapid.about = makeGetter("about", false)
 
 return roapid
