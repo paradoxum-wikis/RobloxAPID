@@ -1,6 +1,8 @@
 # RobloxAPID
 **RobloxAPID**, also known as **roapid**, is a lightweight Go daemon that bridges the Roblox API to Fandom (and other MediaWiki) wikis.
 
+<p align="center"><img src="https://bin.t7ru.link/fol/roapid.gif" alt="RobloxAPID in action"></p>
+
 As the name suggests, it continuously runs in the background, monitoring updates from Roblox's **Open Cloud** and **Legacy** APIs, then automatically mirrors the latest data to your wiki. This allows readers to see up-to-date Roblox information across both **FandomDesktop** and **FandomMobile** skins.
 
 RobloxAPID requires an account with [**bot userrights**](https://community.fandom.com/wiki/Help:Bots), meaning you will need to have the flag enabled.
