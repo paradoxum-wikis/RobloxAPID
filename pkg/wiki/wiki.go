@@ -213,7 +213,7 @@ func (w *WikiClient) PageExists(title string) (bool, error) {
 	return true, nil
 }
 
-// checks if Roapid module page exists and is at the required version.
+// checks if Roapid module page exists and is at the required version
 func (w *WikiClient) SetupRoapiModule(pageTitle, requiredVersion, content string) error {
 	log.Printf("Checking wiki page: %s", pageTitle)
 
