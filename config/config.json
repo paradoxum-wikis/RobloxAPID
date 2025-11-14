@@ -1,35 +1,40 @@
 {
-  "server": {
-    "categoryCheckInterval": "1m",
-    "dataRefreshInterval": "30m"
-  },
-  "wiki": {
-    "apiUrl": "https://your-wiki.com/api.php",
-    "username": "YourWikiUsername@YourBotName",
-    "password": "your_bot_password_here",
-    "namespace": "Module"
-  },
-  "dynamicEndpoints": {
-    "categoryPrefix": "robloxapid-queue",
-    "apiMap": {
-      "badges": "https://badges.roblox.com/v1/badges/%s",
-      "users": "https://apis.roblox.com/cloud/v2/users/%s",
-      "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
-      "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
-      "places": "https://apis.roblox.com/cloud/v2/%s",
-      "games": "https://games.roblox.com/v1/games?universeIds=%s"
+    "server": {
+        "categoryCheckInterval": "1m",
+        "dataRefreshInterval": "30m"
     },
-    "refreshIntervals": {
-      "badges": "30m",
-      "about": "168h",
-      "users": "1h",
-      "groups": "1h",
-      "universes": "1h",
-      "places": "1h",
-      "games": "1h"
+    "wiki": {
+        "apiUrl": "https://your-wiki.com/api.php",
+        "username": "YourWikiUsername@YourBotName",
+        "password": "your_bot_password_here",
+        "namespace": "Module"
+    },
+    "dynamicEndpoints": {
+        "categoryPrefix": "robloxapid-queue",
+        "apiMap": {
+            "badges": "https://badges.roblox.com/v1/badges/%s",
+            "users": "https://apis.roblox.com/cloud/v2/users/%s",
+            "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
+            "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
+            "places": "https://apis.roblox.com/cloud/v2/%s",
+            "games": "https://games.roblox.com/v1/games?universeIds=%s",
+            "virtual-events": "https://apis.roblox.com/virtual-events/v1/universes/%s/virtual-events"
+        },
+        "refreshIntervals": {
+            "badges": "30m",
+            "about": "168h",
+            "users": "1h",
+            "groups": "1h",
+            "universes": "1h",
+            "places": "1h",
+            "games": "1h",
+            "virtual-events": "3h"
+        }
+    },
+    "openCloud": {
+        "apiKey": "YOUR_OPEN_CLOUD_KEY"
+    },
+    "roblox": {
+        "cookie": "YOUR_COOKIE"
     }
-  },
-  "openCloud": {
-    "apiKey": "YOUR_OPEN_CLOUD_KEY"
-  }
 }

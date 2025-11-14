@@ -99,7 +99,8 @@ Main configuration file:
             "users": "https://apis.roblox.com/cloud/v2/users/%s",
             "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
             "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
-            "places": "https://apis.roblox.com/cloud/v2/%s"
+            "places": "https://apis.roblox.com/cloud/v2/%s",
+            "games": "https://games.roblox.com/v1/games?universeIds=%s"
         },
         "refreshIntervals": {
             "badges": "30m",
@@ -110,6 +111,12 @@ Main configuration file:
             "places": "1h",
             "games": "1h"
         }
+    },
+    "openCloud": {
+        "apiKey": "YOUR_OPEN_CLOUD_KEY"
+    },
+    "roblox": {
+        "cookie": "YOUR_COOKIE"
     }
 }
 ```
@@ -117,6 +124,8 @@ Main configuration file:
 - `dataRefreshInterval`: Default refresh interval for endpoints.
 - `apiMap`: Maps endpoint types to API URLs (use `%s` for ID placeholder).
 - `refreshIntervals`: Endpoint refresh intervals (overrides default).
+- `openCloud.apiKey`: Required key for Roblox Open Cloud endpoints (users/groups/universes/places).
+- `roblox.cookie`: Optional `.ROBLOSECURITY` cookie for legacy and internal endpoints that require authentication.
 
 ### about.json
 Static about information, if you're hosting publicly, do not change it:

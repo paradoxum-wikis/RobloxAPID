@@ -11,6 +11,7 @@ type Config struct {
 	Wiki             WikiConfig             `json:"wiki"`
 	DynamicEndpoints DynamicEndpointsConfig `json:"dynamicEndpoints"`
 	OpenCloud        OpenCloudConfig        `json:"openCloud"`
+	Roblox           RobloxConfig           `json:"roblox"`
 }
 
 type ServerConfig struct {
@@ -34,6 +35,10 @@ type DynamicEndpointsConfig struct {
 
 type OpenCloudConfig struct {
 	APIKey string `json:"apiKey"`
+}
+
+type RobloxConfig struct {
+	Cookie string `json:"cookie"`
 }
 
 func LoadConfig(path string) (*Config, error) {

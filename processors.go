@@ -66,18 +66,29 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	path := fmt.Sprintf("%s-%s.json", endpointType, id)
 
 	var newData []byte
+	var headers map[string]string
 
 	switch endpointType {
 	case "users", "groups", "universes", "places":
 		if cfg.OpenCloud.APIKey == "" {
 			return fmt.Errorf("open cloud api key required for %s", endpointType)
 		}
-		headers := map[string]string{
+		headers = map[string]string{
 			"x-api-key": cfg.OpenCloud.APIKey,
 			"Accept":    "application/json",
 		}
+	}
+
+	if cfg.Roblox.Cookie != "" {
+		if headers == nil {
+			headers = make(map[string]string)
+		}
+		headers["Cookie"] = cfg.Roblox.Cookie
+	}
+
+	if headers != nil {
 		newData, err = fetcher.FetchWithHeaders(url, headers)
-	default:
+	} else {
 		newData, err = fetcher.Fetch(url)
 	}
 
