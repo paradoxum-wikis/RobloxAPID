@@ -51,6 +51,11 @@ var staticDocs = []staticDoc{
 		wikiSlug: "games.json",
 		summary:  "Automated sync of legacy games API guide",
 	},
+	{
+		filename: "virtual-events.json",
+		wikiSlug: "virtual-events.json",
+		summary:  "Automated sync of internal virtual events API guide",
+	},
 }
 
 func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string) error {
@@ -76,6 +81,10 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 		headers = map[string]string{
 			"x-api-key": cfg.OpenCloud.APIKey,
 			"Accept":    "application/json",
+		}
+	case "virtual-events":
+		if cfg.Roblox.Cookie == "" {
+			return fmt.Errorf("roblox cookie required for %s", endpointType)
 		}
 	}
 

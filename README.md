@@ -59,6 +59,9 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
   - Badges
   - Games
 
+- **Internal**
+  - Virtual Events
+
 ## Installation
 
 1. **Prerequisites**:
@@ -100,7 +103,8 @@ Main configuration file:
             "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
             "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
             "places": "https://apis.roblox.com/cloud/v2/%s",
-            "games": "https://games.roblox.com/v1/games?universeIds=%s"
+            "games": "https://games.roblox.com/v1/games?universeIds=%s",
+            "virtualevents": "https://apis.roblox.com/virtual-events/v1/universes/%s/virtual-events"
         },
         "refreshIntervals": {
             "badges": "30m",
@@ -109,7 +113,8 @@ Main configuration file:
             "groups": "1h",
             "universes": "1h",
             "places": "1h",
-            "games": "1h"
+            "games": "1h",
+            "virtualevents": "3h"
         }
     },
     "openCloud": {
@@ -125,7 +130,7 @@ Main configuration file:
 - `apiMap`: Maps endpoint types to API URLs (use `%s` for ID placeholder).
 - `refreshIntervals`: Endpoint refresh intervals (overrides default).
 - `openCloud.apiKey`: Required key for Roblox Open Cloud endpoints (users/groups/universes/places).
-- `roblox.cookie`: Optional `.ROBLOSECURITY` cookie for legacy and internal endpoints that require authentication.
+- `roblox.cookie`: Optional `.ROBLOSECURITY` cookie for legacy and internal endpoints. It is **required** for `virtualevents` and generally recommended for higher badge/game rate limits.
 
 ### about.json
 Static about information, if you're hosting publicly, do not change it:
@@ -138,7 +143,7 @@ Static about information, if you're hosting publicly, do not change it:
 }
 ```
 
-### badges.json / users.json / groups.json / universes.json / places.json / games.json
+### Index JSONs
 Static usage guides for the API endpoints. Each file documents relevant information such as usage, description, fields, and examples.
 
 They all sync to `Module:roapid/<endpoint>.json` so editors can surface instructions directly on the wiki.

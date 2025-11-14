@@ -121,6 +121,7 @@ roapid.groups = makeGetter("groups", true)
 roapid.universes = makeGetter("universes", true)
 roapid.places = makeGetter("places", true)
 roapid.games = makeGetter("games", true)
+roapid["virtual-events"] = makeGetter("virtual-events", true)
 roapid.about = makeGetter("about", false)
 
 return roapid

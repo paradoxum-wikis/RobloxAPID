@@ -1,0 +1,35 @@
+{
+  "description": "Lists virtual events for a universe via Roblox's internal virtual-events API.",
+  "usage": {
+    "full_record": "{{#invoke:roapid|virtual-events|<universeId>}}",
+    "field": "{{#invoke:roapid|virtual-events|<universeId>|<field>|<number>|<nestedField>}}",
+    "nested_field": "{{#invoke:roapid|virtual-events|<universeId>|<field>|<number>|<nestedField>|<nestedField>}}",
+    "index": "{{#invoke:roapid|virtual-events}}"
+  },
+  "fields": [
+    "nextPageCursor",
+    "previousPageCursor",
+    "data",
+    "data.n.id",
+    "data.n.title",
+    "data.n.subtitle",
+    "data.n.description",
+    "data.n.eventTime.startUtc",
+    "data.n.eventTime.endUtc",
+    "data.n.host.hostName",
+    "data.n.host.hostType",
+    "data.n.universeId",
+    "data.n.placeId",
+    "data.n.eventStatus",
+    "data.n.eventVisibility",
+    "data.n.createdUtc",
+    "data.n.updatedUtc",
+    "data.n.eventCategories",
+    "data.n.thumbnails"
+  ],
+  "examples": [
+    "{{#invoke:roapid|virtual-events|1176784616}}",
+    "{{#invoke:roapid|virtual-events|1176784616|data|1|displayTitle}}",
+    "{{#invoke:roapid|virtual-events|1176784616|data|1|eventTime|startUtc}}"
+  ]
+}
