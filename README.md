@@ -39,13 +39,13 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 </table>
 
 ## Why use it?
-- Lightweight: a single Go binary with very efficient resource usage.
-- Low-maintenance: configurable intervals and automated refreshes.
-- Fast: periodically writes JSON pages that are consumed by a tiny Lua module (`Module:Roapid`) so editors can embed data with `{{#invoke:roapid|...}}`.
-- Instant: as data are cached natively on the wiki, pulling data are instant.
-- Reliable updates: detects data changes and purges caches after updates so pages stay fresh.
-- Fandom-friendly: works on both FandomDesktop and FandomMobile skins.
-- Open source: audit and extend it on GitHub.
+- **Always watching:** runs quietly, tracking Roblox APIs and copying updates to your wiki as soon as they change.
+- **Dazzlingly quick:** stores Roblox responses as JSON pages natively on the wiki, so you can pull data immediately without delay.
+- **Set and forget:** once configured it keeps refreshing data and clearing caches on its own cadence.
+- **Simple yet flexible:** ships with `Module:Roapid`, letting editors pick whatever data they want through `{{#invoke:roapid|...}}`.
+- **Compatible on all:** can be used on virtually every MediaWiki farm with no hassles and hiccups.
+- **Zero JavaScript:** works on FandomMobile and isn't affected by any JavaScript restrictions, letting the daemon be updated the moment an update is out.
+- **Lightweight and open:** ships as a single Go binary and Lua module that you can audit, fork, or extend.
 
 ...and of course, you don't need to host it at all if you choose to opt-in with us!
 
@@ -104,7 +104,7 @@ Main configuration file:
             "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
             "places": "https://apis.roblox.com/cloud/v2/%s",
             "games": "https://games.roblox.com/v1/games?universeIds=%s",
-            "virtualevents": "https://apis.roblox.com/virtual-events/v2/universes/%s/experience-events"
+            "virtual-events": "https://apis.roblox.com/virtual-events/v2/universes/%s/experience-events"
         },
         "refreshIntervals": {
             "badges": "30m",
@@ -114,7 +114,7 @@ Main configuration file:
             "universes": "1h",
             "places": "1h",
             "games": "1h",
-            "virtualevents": "3h"
+            "virtual-events": "3h"
         }
     },
     "openCloud": {
