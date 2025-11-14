@@ -54,6 +54,16 @@ var staticDocs = []staticDoc{
 		summary:  "Automated sync of legacy games API guide",
 	},
 	{
+		filename: "favorites.json",
+		wikiSlug: "favorites.json",
+		summary:  "Automated sync of legacy favorites API guide",
+	},
+	{
+		filename: "votes.json",
+		wikiSlug: "votes.json",
+		summary:  "Automated sync of legacy votes API guide",
+	},
+	{
 		filename: "virtual-events.json",
 		wikiSlug: "virtual-events.json",
 		summary:  "Automated sync of internal virtual events API guide",

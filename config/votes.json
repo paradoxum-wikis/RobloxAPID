@@ -1,0 +1,18 @@
+{
+  "description": "Legacy games votes API.",
+  "usage": {
+    "full_record": "{{#invoke:roapid|votes|<universeId>}}",
+    "field": "{{#invoke:roapid|votes|<universeId>|<field>}}",
+    "index": "{{#invoke:roapid|votes}}"
+  },
+  "fields": [
+    "id",
+    "upVotes",
+    "downVotes"
+  ],
+  "examples": [
+    "{{#invoke:roapid|votes|1176784616}}",
+    "{{#invoke:roapid|votes|1176784616|upVotes}}",
+    "{{#invoke:roapid|votes|1176784616|downVotes}}"
+  ]
+}

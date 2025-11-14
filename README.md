@@ -58,6 +58,8 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 - **Legacy**
   - Badges
   - Games
+  - Favorites
+  - Votes
 
 - **Internal**
   - Virtual Events
@@ -104,6 +106,8 @@ Main configuration file:
             "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
             "places": "https://apis.roblox.com/cloud/v2/%s",
             "games": "https://games.roblox.com/v1/games?universeIds=%s",
+            "favorites": "https://games.roblox.com/v1/games/%s/favorites/count",
+            "votes": "https://games.roblox.com/v1/games/%s/votes",
             "virtual-events": "https://apis.roblox.com/virtual-events/v2/universes/%s/experience-events"
         },
         "refreshIntervals": {
@@ -114,6 +118,8 @@ Main configuration file:
             "universes": "1h",
             "places": "1h",
             "games": "1h",
+            "favorites": "2h",
+            "votes": "2h",
             "virtual-events": "3h"
         }
     },

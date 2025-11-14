@@ -1,0 +1,15 @@
+{
+  "description": "Legacy games favorites count API.",
+  "usage": {
+    "full_record": "{{#invoke:roapid|favorites|<universeId>}}",
+    "field": "{{#invoke:roapid|favorites|<universeId>|<field>}}",
+    "index": "{{#invoke:roapid|favorites}}"
+  },
+  "fields": [
+    "favoritesCount"
+  ],
+  "examples": [
+    "{{#invoke:roapid|favorites|1176784616}}",
+    "{{#invoke:roapid|favorites|1176784616|favoritesCount}}"
+  ]
+}
