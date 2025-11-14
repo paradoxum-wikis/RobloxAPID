@@ -2,7 +2,7 @@
   "description": "Lists virtual events for a universe via Roblox's internal virtual-events API.",
   "usage": {
     "full_record": "{{#invoke:roapid|virtual-events|<universeId>}}",
-    "field": "{{#invoke:roapid|virtual-events|<universeId>|<field>|<number>|<nestedField>}}",
+    "field": "{{#invoke:roapid|virtual-events|<universeId>|<field>}}",
     "nested_field": "{{#invoke:roapid|virtual-events|<universeId>|<field>|<number>|<nestedField>|<nestedField>}}",
     "index": "{{#invoke:roapid|virtual-events}}"
   },
