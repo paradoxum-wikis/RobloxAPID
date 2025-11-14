@@ -12,7 +12,7 @@ import (
 	"robloxapid/pkg/wiki"
 )
 
-const roapiModuleVersion = "0.0.15"
+const roapiModuleVersion = "0.0.16"
 
 var roapiModuleContent = wiki.RoapidLua
 

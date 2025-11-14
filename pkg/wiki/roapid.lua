@@ -1,4 +1,4 @@
--- 0.0.15
+-- 0.0.16
 -- https://github.com/paradoxum-wikis/RobloxAPID
 local roapid = {}
 
@@ -121,6 +121,8 @@ roapid.groups = makeGetter("groups", true)
 roapid.universes = makeGetter("universes", true)
 roapid.places = makeGetter("places", true)
 roapid.games = makeGetter("games", true)
+roapid.favorites = makeGetter("favorites", true)
+roapid.votes = makeGetter("votes", true)
 roapid["virtual-events"] = makeGetter("virtual-events", true)
 roapid.about = makeGetter("about", false)
 
