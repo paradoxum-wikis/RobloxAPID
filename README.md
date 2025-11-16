@@ -50,18 +50,18 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 ...and of course, you don't need to host it at all if you choose to opt-in with us!
 
 ## Currently supported endpoints
-- **Open Cloud**
+- **Open Cloud**:
   - Users
   - Groups
   - Universes
   - Places
-- **Legacy**
+- **Legacy**:
   - Badges
   - Games
   - Favorites
   - Votes
 
-- **Internal**
+- **Internal**:
   - Virtual Events
 
 ## Installation
