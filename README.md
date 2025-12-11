@@ -12,7 +12,7 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 
 <table>
   <tr>
-    <th colspan="3" align="left">Wikis using RobloxAPID</th>
+    <th colspan="4" align="left">Wikis using RobloxAPID</th>
   </tr>
   <tr>
     <td align="center">
@@ -21,7 +21,7 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
       </a>
     </td>
     <td align="center">
-      <a href="https://tds.wiki/">
+      <a href="https://tds.fandom.com/">
         <img src="https://static.wikia.nocookie.net/tower-defense-sim/images/e/e6/Site-logo.png/revision/latest" width="220">
       </a>
     </td>
