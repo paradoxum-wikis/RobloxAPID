@@ -87,10 +87,24 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
    go build -o robloxapid .
    ```
 
+4. **Generate a Bot Password**:
+   - Go to your wiki's **Special:BotPasswords** page.
+   - Create a new bot password and enable these permissions (and any other you may need):
+      - `High-volume (bot) access`
+      - `Edit existing pages`
+      - `Edit the MediaWiki namespace and sitewide/user JSON`
+      - `Create, edit, and move pages`
+
 ## Configuration
 
 ### config.json
 Main configuration file:
+
+> [!NOTE]
+> `config.json` supports environment variables, any `${VAR}` tokens in the file will be replaced with values from the process environment before the config is parsed. This is particularly useful for keeping sensitive things out of the file.
+>
+> `.env` files are not loaded automatically, you'll have to set them via your shell, systemd, etc.
+
 ```json
 {
     "server": {
@@ -98,9 +112,9 @@ Main configuration file:
         "dataRefreshInterval": "30m"
     },
     "wiki": {
-        "apiUrl": "https://your-wiki.com/api.php",
-        "username": "YourWikiUsername@YourBotName",
-        "password": "your_bot_password_here",
+        "apiUrl": "${WIKI_API_URL}",
+        "username": "${WIKI_USERNAME}",
+        "password": "${WIKI_PASSWORD}",
         "namespace": "Module"
     },
     "dynamicEndpoints": {
@@ -130,10 +144,10 @@ Main configuration file:
         }
     },
     "openCloud": {
-        "apiKey": "YOUR_OPEN_CLOUD_KEY"
+        "apiKey": "${OPEN_CLOUD_API_KEY}"
     },
     "roblox": {
-        "cookie": "YOUR_COOKIE"
+        "cookie": "${ROBLOX_COOKIE}"
     }
 }
 ```
