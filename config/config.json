@@ -40,5 +40,9 @@
   },
   "roblox": {
     "cookie": "${ROBLOX_COOKIE}"
+  },
+  "luaMessages": {
+    "queueNote": "Publish this page and wait at least a minute for data to be fetched.",
+    "fieldPathNotFound": "Field path not found (%s), [[%s|see fields]]."
   }
 }

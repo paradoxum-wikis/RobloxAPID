@@ -12,6 +12,12 @@ type Config struct {
 	DynamicEndpoints DynamicEndpointsConfig `json:"dynamicEndpoints"`
 	OpenCloud        OpenCloudConfig        `json:"openCloud"`
 	Roblox           RobloxConfig           `json:"roblox"`
+	LuaMessages      LuaMessagesConfig      `json:"luaMessages"`
+}
+
+type LuaMessagesConfig struct {
+	QueueNote         string `json:"queueNote"`
+	FieldPathNotFound string `json:"fieldPathNotFound"`
 }
 
 type ServerConfig struct {

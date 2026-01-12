@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -12,7 +13,7 @@ import (
 	"robloxapid/pkg/wiki"
 )
 
-const roapiModuleVersion = "0.0.16"
+const roapiModuleVersion = "0.0.17"
 
 var roapiModuleContent = wiki.RoapidLua
 
@@ -35,7 +36,22 @@ func main() {
 		log.Fatalf("Failed to create wiki client: %v", err)
 	}
 
-	err = wikiClient.SetupRoapiModule("Module:Roapid", roapiModuleVersion, roapiModuleContent)
+	roapiModuleContent = strings.ReplaceAll(roapiModuleContent, "{{NAMESPACE}}", cfg.Wiki.Namespace)
+	roapiModuleContent = strings.ReplaceAll(roapiModuleContent, "{{CATEGORY_PREFIX}}", cfg.DynamicEndpoints.CategoryPrefix)
+
+	queueNote := cfg.LuaMessages.QueueNote
+	if queueNote == "" {
+		queueNote = "Publish this page and wait at least a minute for data to be fetched."
+	}
+	roapiModuleContent = strings.ReplaceAll(roapiModuleContent, "{{MSG_QUEUE_NOTE}}", queueNote)
+
+	fpnf := cfg.LuaMessages.FieldPathNotFound
+	if fpnf == "" {
+		fpnf = "Field path not found (%s), [[%s|see fields]]."
+	}
+	roapiModuleContent = strings.ReplaceAll(roapiModuleContent, "{{MSG_FIELD_PATH_NOT_FOUND}}", fpnf)
+
+	err = wikiClient.SetupRoapiModule(cfg.Wiki.Namespace+":Roapid", roapiModuleVersion, roapiModuleContent)
 	if err != nil {
 		log.Fatalf("Failed to setup Roapid module on wiki: %v", err)
 	}

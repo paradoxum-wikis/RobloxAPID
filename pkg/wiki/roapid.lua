@@ -1,4 +1,4 @@
--- 0.0.16
+-- 0.0.17
 -- https://github.com/paradoxum-wikis/RobloxAPID
 local roapid = {}
 
@@ -24,20 +24,20 @@ end
 
 local function buildTitle(resource, id)
     return (id == "" or not id)
-        and string.format("Module:roapid/%s.json", resource)
-         or string.format("Module:roapid/%s-%s.json", resource, id)
+        and string.format("{{NAMESPACE}}:roapid/%s.json", resource)
+         or string.format("{{NAMESPACE}}:roapid/%s-%s.json", resource, id)
 end
 
 local function getQueueCategory(resource, id)
     if id and id ~= "" then
-        return string.format("[[Category:robloxapid-queue-%s-%s]]", resource, id)
+        return string.format("[[Category:{{CATEGORY_PREFIX}}-%s-%s]]", resource, id)
     end
     return ""
 end
 
 local function getQueueNotice(resource, id)
     local cat = getQueueCategory(resource, id)
-    local note = "Publish this page and wait at least a minute for data to be fetched."
+    local note = "{{MSG_QUEUE_NOTE}}"
     return cat ~= "" and (cat .. note) or note
 end
 
@@ -69,7 +69,7 @@ local function buildPathError(resource, id, path)
     end
     local moduleName = buildTitle(resource, id or "")
     return string.format(
-        "Field path not found (%s), [[%s|see fields]].",
+        "{{MSG_FIELD_PATH_NOT_FOUND}}",
         table.concat(segments, " | "),
         moduleName
     )
