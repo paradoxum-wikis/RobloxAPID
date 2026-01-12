@@ -112,9 +112,9 @@ Main configuration file:
         "dataRefreshInterval": "30m"
     },
     "wiki": {
-        "apiUrl": "${WIKI_API_URL}",
-        "username": "${WIKI_USERNAME}",
-        "password": "${WIKI_PASSWORD}",
+        "apiUrl": "https://your-wiki.com/api.php",
+        "username": "YourWikiUsername@YourBotName",
+        "password": "YourBotPasswordHere",
         "namespace": "Module"
     },
     "dynamicEndpoints": {
