@@ -185,7 +185,7 @@ They all sync to `Module:roapid/<endpoint>.json` so editors can surface instruct
 2. **On the Wiki**:
    - The Lua module `Module:Roapid` is automatically set up.
    - Use invokes to access data:
-     - `{{#invoke:roapid|badges|123456}}`: Gets the description field for badge ID 123456.
+     - `{{#invoke:roapid|badges|123456|description}}`: Gets the description field for badge ID 123456.
    - When you're accessing an ID that isn't mirrored yet, wait for the daemon to fetch it and it will be up in less than a minute.
    - The page will have missing data for a while, but that is intentional.
    - We also recommend making a template wrapper to abstract the invokes.
