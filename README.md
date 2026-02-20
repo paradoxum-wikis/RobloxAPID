@@ -3,7 +3,7 @@
 
 <p align="center"><img src="https://bin.t7ru.link/fol/roapid.gif" alt="RobloxAPID in action"></p>
 
-As the name suggests, it continuously runs in the background, monitoring updates from Roblox's **Open Cloud** and **Legacy** APIs, then automatically mirrors the latest data to your wiki. This allows readers to see up-to-date Roblox information across both **FandomDesktop** and **FandomMobile** skins.
+As the name suggests, it continuously runs in the background, monitoring updates from Roblox's **Open Cloud** and **Legacy** APIs, then automatically mirrors the latest data to your wiki. This lets your beloved readers see up-to-date Roblox information across both **FandomDesktop** and **FandomMobile** skins.
 
 RobloxAPID requires an account with [**bot userrights**](https://community.fandom.com/wiki/Help:Bots), meaning you will need to have the flag enabled.
 
@@ -45,13 +45,13 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 </table>
 
 ## Why use it?
-- **Always watching:** runs quietly, tracking Roblox APIs and copying updates to your wiki as soon as they change.
-- **Dazzlingly quick:** stores Roblox responses as JSON pages natively on the wiki, so you can pull data immediately without delay.
-- **Set and forget:** once configured it keeps refreshing data and clearing caches on its own cadence.
-- **Simple yet flexible:** ships with `Module:Roapid`, letting editors pick whatever data they want through `{{#invoke:roapid|...}}`.
-- **Compatible on all:** can be used on virtually every MediaWiki farm with no hassles and hiccups.
-- **Zero JavaScript:** works on FandomMobile and isn't affected by any JavaScript restrictions, letting the daemon be updated the moment an update is out.
-- **Lightweight and open:** ships as a single Go binary and Lua module that you can audit, fork, or extend.
+- **Always watching:** Runs quietly, tracking Roblox APIs and mirroring updates to your wiki as soon as they change.
+- **Dazzlingly quick:** Stores Roblox responses directly on the wiki, so you can pull data without delay.
+- **Set and forget:** Once configured, it keeps refreshing data and clearing caches on its own cadence.
+- **Simple yet flexible:** Ships with `Module:Roapid`, letting editors pick whatever data they want through `{{#invoke:roapid|...}}`.
+- **Compatible on all:** Can be used on virtually every MediaWiki farm with no hassles and hiccups.
+- **Zero JavaScript:** Works on FandomMobile and isn't affected by any JavaScript restrictions, letting the daemon be updated the moment an update is out.
+- **Lightweight and open:** Think you can do better? The code is open for you to tinker with!
 
 ...and of course, you don't need to host it at all if you choose to opt-in with us!
 
@@ -151,7 +151,7 @@ Main configuration file:
     }
 }
 ```
-- `categoryCheckInterval`: How often to check for new categories (this is how we know what to fetch).
+- `categoryCheckInterval`: How often to check for new categories (this is how it knows what to fetch).
 - `dataRefreshInterval`: Default refresh interval for endpoints.
 - `apiMap`: Maps endpoint types to API URLs (use `%s` for ID placeholder).
 - `refreshIntervals`: Endpoint refresh intervals (overrides default).
