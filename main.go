@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"robloxapid/pkg/config"
-	"robloxapid/pkg/wiki"
+	"robloxapid/internal/config"
+	"robloxapid/internal/wiki"
 )
 
 const roapiModuleVersion = "0.0.17"

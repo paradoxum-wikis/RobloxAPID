@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"robloxapid/pkg/config"
+	"robloxapid/internal/config"
 )
 
 type endpointState struct {

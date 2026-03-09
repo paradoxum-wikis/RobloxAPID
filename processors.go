@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"robloxapid/pkg/checker"
-	"robloxapid/pkg/config"
-	"robloxapid/pkg/fetcher"
-	"robloxapid/pkg/storage"
-	"robloxapid/pkg/wiki"
+	"robloxapid/internal/checker"
+	"robloxapid/internal/config"
+	"robloxapid/internal/fetcher"
+	"robloxapid/internal/storage"
+	"robloxapid/internal/wiki"
 )
 
 type staticDoc struct {
