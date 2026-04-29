@@ -13,13 +13,62 @@ import (
 
 	"cgt.name/pkg/go-mwclient"
 	"cgt.name/pkg/go-mwclient/params"
-	"github.com/antonholmquist/jason"
 )
 
 type WikiClient struct {
 	client   *mwclient.Client
 	editMu   sync.Mutex
 	lastEdit time.Time
+}
+
+type mwUserInfoResponse struct {
+	Query struct {
+		UserInfo struct {
+			Rights []string `json:"rights"`
+		} `json:"userinfo"`
+	} `json:"query"`
+}
+
+type mwRevisionsResponse struct {
+	Query struct {
+		Pages []struct {
+			PageID    int64 `json:"pageid"`
+			Missing   bool  `json:"missing"`
+			Revisions []struct {
+				Slots struct {
+					Main struct {
+						Content string `json:"content"`
+					} `json:"main"`
+				} `json:"slots"`
+			} `json:"revisions"`
+		} `json:"pages"`
+	} `json:"query"`
+}
+
+type mwInfoResponse struct {
+	Query struct {
+		Pages []struct {
+			PageID  int64 `json:"pageid"`
+			Missing bool  `json:"missing"`
+		} `json:"pages"`
+	} `json:"query"`
+}
+
+type mwAllCategoriesResponse struct {
+	Query struct {
+		AllCategories []struct {
+			Category string `json:"category"`
+			Star     string `json:"*"`
+		} `json:"allcategories"`
+	} `json:"query"`
+}
+
+type mwCategoryMembersResponse struct {
+	Query struct {
+		CategoryMembers []struct {
+			Title string `json:"title"`
+		} `json:"categorymembers"`
+	} `json:"query"`
 }
 
 func NewWikiClient(apiURL, username, password string) (*WikiClient, error) {
@@ -41,23 +90,19 @@ func NewWikiClient(apiURL, username, password string) (*WikiClient, error) {
 		"format":        "json",
 		"formatversion": "2",
 	}
-	resp, err := client.Get(p)
+
+	respBody, err := client.GetRaw(p)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query user rights: %w", err)
 	}
 
-	userinfo, err := resp.GetObject("query", "userinfo")
-	if err != nil {
+	var res mwUserInfoResponse
+	if err := json.Unmarshal(respBody, &res); err != nil {
 		return nil, fmt.Errorf("failed to parse userinfo: %w", err)
 	}
 
-	rights, err := userinfo.GetStringArray("rights")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user rights: %w", err)
-	}
-
 	hasBot := false
-	for _, right := range rights {
+	for _, right := range res.Query.UserInfo.Rights {
 		if right == "bot" {
 			hasBot = true
 			break
@@ -114,10 +159,14 @@ func (w *WikiClient) throttleEdit() {
 	w.lastEdit = now
 }
 
-func logJSON(label string, obj *jason.Object) {
-	m := obj.Map()
-	rawJSON, _ := json.MarshalIndent(m, "", "  ")
-	log.Printf("[DEBUG] %s:\n%s", label, string(rawJSON))
+func logRawJSON(label string, rawBody []byte) {
+	var m interface{}
+	if err := json.Unmarshal(rawBody, &m); err == nil {
+		prettyJSON, _ := json.MarshalIndent(m, "", "  ")
+		log.Printf("[DEBUG] %s:\n%s", label, string(prettyJSON))
+	} else {
+		log.Printf("[DEBUG] %s:\n%s", label, string(rawBody))
+	}
 }
 
 func (w *WikiClient) GetPageByName(pageName string) (string, error) {
@@ -131,49 +180,31 @@ func (w *WikiClient) GetPageByName(pageName string) (string, error) {
 		"formatversion": "2",
 	}
 
-	resp, err := w.client.Get(p)
+	respBody, err := w.client.GetRaw(p)
 	if err != nil {
 		return "", err
 	}
+	logRawJSON("GetPageByName response:", respBody)
 
-	logJSON("GetPageByName response", resp)
-
-	pages, err := resp.GetObjectArray("query", "pages")
-	if err != nil {
-		if strings.Contains(err.Error(), "no value for key") {
-			return "", errors.New("page not found")
-		}
-		return "", err
+	var res mwRevisionsResponse
+	if err := json.Unmarshal(respBody, &res); err != nil {
+		return "", fmt.Errorf("failed to parse page revisions: %w", err)
 	}
-	if len(pages) == 0 {
+
+	if len(res.Query.Pages) == 0 {
 		return "", errors.New("page not found")
 	}
 
-	page := pages[0]
-	pageID, _ := page.GetInt64("pageid")
-	if pageID == -1 {
-		return "", errors.New("page not found")
-	}
-	if missing, _ := page.GetBoolean("missing"); missing {
+	page := res.Query.Pages[0]
+	if page.PageID == -1 || page.Missing {
 		return "", errors.New("page not found")
 	}
 
-	revisions, err := page.GetObjectArray("revisions")
-	if err != nil || len(revisions) == 0 {
+	if len(page.Revisions) == 0 {
 		return "", errors.New("no revisions found")
 	}
 
-	mainSlot, err := revisions[0].GetObject("slots", "main")
-	if err != nil {
-		return "", err
-	}
-
-	content, err := mainSlot.GetString("content")
-	if err != nil {
-		return "", err
-	}
-
-	return content, nil
+	return page.Revisions[0].Slots.Main.Content, nil
 }
 
 func (w *WikiClient) PageExists(title string) (bool, error) {
@@ -185,35 +216,29 @@ func (w *WikiClient) PageExists(title string) (bool, error) {
 		"formatversion": "2",
 	}
 
-	resp, err := w.client.Get(p)
+	respBody, err := w.client.GetRaw(p)
 	if err != nil {
 		return false, err
 	}
+	logRawJSON("PageExists response", respBody)
 
-	pages, err := resp.GetObjectArray("query", "pages")
-	if err != nil {
-		if strings.Contains(err.Error(), "no value for key") {
-			return false, nil
-		}
-		return false, err
-	}
-	if len(pages) == 0 {
+	var res mwInfoResponse
+	if err := json.Unmarshal(respBody, &res); err != nil {
 		return false, nil
 	}
 
-	page := pages[0]
-	if missing, _ := page.GetBoolean("missing"); missing {
+	if len(res.Query.Pages) == 0 {
 		return false, nil
 	}
-	pageID, _ := page.GetInt64("pageid")
-	if pageID == -1 {
+
+	page := res.Query.Pages[0]
+	if page.Missing || page.PageID == -1 {
 		return false, nil
 	}
 
 	return true, nil
 }
 
-// checks if Roapid module page exists and is at the required version
 func (w *WikiClient) SetupRoapiModule(pageTitle, requiredVersion, content string) error {
 	log.Printf("Checking wiki page: %s", pageTitle)
 
@@ -259,24 +284,22 @@ func (w *WikiClient) GetCategoriesWithPrefix(prefix string) ([]string, error) {
 		"formatversion": "2",
 	}
 
-	resp, err := w.client.Get(p)
+	respBody, err := w.client.GetRaw(p)
 	if err != nil {
 		return nil, err
 	}
+	logRawJSON("GetCategoriesWithPrefix response", respBody)
 
-	cats, err := resp.GetObjectArray("query", "allcategories")
-	if err != nil {
-		if strings.Contains(err.Error(), "no value for key") {
-			return []string{}, nil
-		}
-		return nil, err
+	var res mwAllCategoriesResponse
+	if err := json.Unmarshal(respBody, &res); err != nil {
+		return []string{}, nil
 	}
 
 	var titles []string
-	for _, cat := range cats {
-		name, err := cat.GetString("category")
-		if err != nil || name == "" {
-			name, _ = cat.GetString("*")
+	for _, cat := range res.Query.AllCategories {
+		name := cat.Category
+		if name == "" {
+			name = cat.Star
 		}
 		if name == "" {
 			continue
@@ -304,26 +327,22 @@ func (w *WikiClient) GetCategoryMembers(category string) ([]string, error) {
 		"formatversion": "2",
 	}
 
-	resp, err := w.client.Get(p)
+	respBody, err := w.client.GetRaw(p)
 	if err != nil {
 		return nil, err
 	}
+	logRawJSON("GetCategoryMembers response", respBody)
 
-	members, err := resp.GetObjectArray("query", "categorymembers")
-	if err != nil {
-		if strings.Contains(err.Error(), "no value for key") {
-			return []string{}, nil
-		}
-		return nil, err
+	var res mwCategoryMembersResponse
+	if err := json.Unmarshal(respBody, &res); err != nil {
+		return []string{}, nil
 	}
 
 	var titles []string
-	for _, member := range members {
-		title, err := member.GetString("title")
-		if err != nil || title == "" {
-			continue
+	for _, member := range res.Query.CategoryMembers {
+		if member.Title != "" {
+			titles = append(titles, member.Title)
 		}
-		titles = append(titles, title)
 	}
 
 	return titles, nil
