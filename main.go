@@ -132,16 +132,21 @@ func main() {
 		}
 		mu.Unlock()
 
+		sem := make(chan struct{}, 10)
 		for _, r := range immediate {
 			workers.Add(1)
 			go func(r toRef) {
+				sem <- struct{}{}
+				defer func() { <-sem }()
 				defer workers.Done()
+
 				select {
 				case <-ctx.Done():
 					log.Printf("[DEBUG] bootstrap: skipping %s due to shutdown", r.category)
 					return
 				default:
 				}
+
 				log.Printf("[DEBUG] bootstrap: immediate refresh %s", r.category)
 				if err := processEndpoint(wikiClient, cfg, r.endpointType, r.id, r.category); err != nil {
 					log.Printf("Error refreshing bootstrapped endpoint %s: %v", r.category, err)
