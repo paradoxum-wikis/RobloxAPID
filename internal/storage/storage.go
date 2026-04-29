@@ -8,7 +8,6 @@ import (
 	"time"
 )
 
-// Save adds a timestamp to the data and saves it to a file, returning the timestamped data
 func Save(path string, data []byte) ([]byte, error) {
 	var dataMap map[string]json.RawMessage
 	if err := json.Unmarshal(data, &dataMap); err != nil {
