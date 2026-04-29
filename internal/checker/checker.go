@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 )
 
-// checks if new data differs from stored data, ignoring 'roLastUpdated'
 func HasChanged(path string, newData []byte) (bool, error) {
 	fullPath := filepath.Join("data", path)
 	log.Printf("[DEBUG] checker.HasChanged: checking %s", fullPath)
@@ -22,9 +21,8 @@ func HasChanged(path string, newData []byte) (bool, error) {
 		return false, err
 	}
 
-	var oldDataMap map[string]interface{}
+	var oldDataMap map[string]json.RawMessage
 	if err := json.Unmarshal(oldData, &oldDataMap); err != nil {
-		// if we can't unmarshal, fall back to raw byte compare
 		eq := bytes.Equal(oldData, newData)
 		if eq {
 			log.Printf("[DEBUG] checker.HasChanged: raw compare -> unchanged: %s", fullPath)
@@ -40,7 +38,7 @@ func HasChanged(path string, newData []byte) (bool, error) {
 		return false, err
 	}
 
-	var newDataMap map[string]interface{}
+	var newDataMap map[string]json.RawMessage
 	if err := json.Unmarshal(newData, &newDataMap); err != nil {
 		eq := bytes.Equal(oldData, newData)
 		if eq {

@@ -10,12 +10,13 @@ import (
 
 // Save adds a timestamp to the data and saves it to a file, returning the timestamped data
 func Save(path string, data []byte) ([]byte, error) {
-	var dataMap map[string]interface{}
+	var dataMap map[string]json.RawMessage
 	if err := json.Unmarshal(data, &dataMap); err != nil {
 		return nil, err
 	}
 
-	dataMap["roLastUpdated"] = time.Now().UTC().Format(time.RFC3339)
+	timestampStr := fmt.Sprintf(`"%s"`, time.Now().UTC().Format(time.RFC3339))
+	dataMap["roLastUpdated"] = json.RawMessage(timestampStr)
 
 	dataToSave, err := json.MarshalIndent(dataMap, "", "  ")
 	if err != nil {
