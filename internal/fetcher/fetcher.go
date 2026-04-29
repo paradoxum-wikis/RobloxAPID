@@ -3,10 +3,15 @@ package fetcher
 import (
 	"io"
 	"net/http"
+	"time"
 )
 
+var client = &http.Client{
+	Timeout: 17 * time.Second,
+}
+
 func Fetch(url string) ([]byte, error) {
-	resp, err := http.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +31,7 @@ func FetchWithHeaders(url string, headers map[string]string) ([]byte, error) {
 		}
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
