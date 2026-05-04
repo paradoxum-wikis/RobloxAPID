@@ -1,31 +1,32 @@
 {
-  "description": "The users open cloud API.",
-  "usage": {
-    "full_record": "{{#invoke:roapid|users|<userId>}}",
-    "field": "{{#invoke:roapid|users|<userId>|<field>}}",
-    "nested_field": "{{#invoke:roapid|users|<userId>|<field>|<nestedField>}}",
-    "index": "{{#invoke:roapid|users}}"
-  },
-  "fields": [
-    "path",
-    "createTime",
-    "updateTime",
-    "id",
-    "displayName",
-    "about",
-    "locale",
-    "premium",
-    "idVerified",
-    "socialNetworkProfiles.facebook",
-    "socialNetworkProfiles.twitter",
-    "socialNetworkProfiles.youtube",
-    "socialNetworkProfiles.twitch",
-    "socialNetworkProfiles.guilded",
-    "socialNetworkProfiles.visibility"
-  ],
-  "examples": [
-    "{{#invoke:roapid|users|1}}",
-    "{{#invoke:roapid|users|1|displayName}}",
-    "{{#invoke:roapid|users|1|socialNetworkProfiles|visibility}}"
-  ]
+	"description": "The users open cloud API.",
+	"usage": {
+		"full_record": "{{#invoke:roapid|users|<userId>}}",
+		"field": "{{#invoke:roapid|users|<userId>|<field>}}",
+		"nested_field": "{{#invoke:roapid|users|<userId>|<field>|<nestedField>}}",
+		"index": "{{#invoke:roapid|users}}"
+	},
+	"fields": [
+		"path",
+		"createTime",
+		"updateTime",
+		"id",
+		"name",
+		"displayName",
+		"about",
+		"locale",
+		"premium",
+		"idVerified",
+		"socialNetworkProfiles.facebook",
+		"socialNetworkProfiles.twitter",
+		"socialNetworkProfiles.youtube",
+		"socialNetworkProfiles.twitch",
+		"socialNetworkProfiles.guilded",
+		"socialNetworkProfiles.visibility"
+	],
+	"examples": [
+		"{{#invoke:roapid|users|1}}",
+		"{{#invoke:roapid|users|1|displayName}}",
+		"{{#invoke:roapid|users|1|socialNetworkProfiles|visibility}}"
+	]
 }
