@@ -17,6 +17,19 @@ type endpointState struct {
 	nextRun      time.Time
 }
 
+var categoryNormalizer = strings.NewReplacer(
+	"\u2212", "-", // unicode minus
+	"\u2010", "-", // hyphen
+	"\u2011", "-", // nb hyphen
+	"\u2012", "-", // figure dash
+	"\u2013", "-", // en dash
+	"\u2014", "-", // em dash
+	"\u2015", "-", // horizontal bar
+	",", "", // commas
+	"\u00a0", "", // nbsp
+	"\u202f", "", // nnbsp
+)
+
 func parseCategory(category, prefix string) (endpointType, id string, err error) {
 	normalized := normalizeCategory(category)
 	expectedPrefix := "Category:" + prefix + "-"
@@ -32,20 +45,8 @@ func parseCategory(category, prefix string) (endpointType, id string, err error)
 }
 
 func normalizeCategory(category string) string {
-	replacer := strings.NewReplacer(
-		"\u2212", "-", // unicode minus
-		"\u2010", "-", // hyphen
-		"\u2011", "-", // nb hyphen
-		"\u2012", "-", // figure dash
-		"\u2013", "-", // en dash
-		"\u2014", "-", // em dash
-		"\u2015", "-", // horizontal bar
-		",", "", // commas
-		"\u00a0", "", // nbsp
-		"\u202f", "", // nnbsp
-	)
 	trimmed := strings.TrimSpace(category)
-	return replacer.Replace(trimmed)
+	return categoryNormalizer.Replace(trimmed)
 }
 
 func updateSchedule(processed map[string]*endpointState, mu *sync.Mutex, category, endpointType string, cfg *config.Config, next time.Time) {
