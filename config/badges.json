@@ -1,32 +1,32 @@
 {
-  "description": "Legacy Roblox badges API integration yippee!",
-  "usage": {
-    "full_record": "{{#invoke:roapid|badges|<badgeId>}}",
-    "field": "{{#invoke:roapid|badges|<badgeId>|<field>}}",
-    "nested_field": "{{#invoke:roapid|badges|<badgeId>|<field>|<nestedField>}}",
-    "index": "{{#invoke:roapid|badges}}"
-  },
-  "fields": [
-    "id",
-    "name",
-    "description",
-    "displayName",
-    "displayDescription",
-    "enabled",
-    "iconImageId",
-    "displayIconImageId",
-    "created",
-    "updated",
-    "statistics.pastDayAwardedCount",
-    "statistics.awardedCount",
-    "statistics.winRatePercentage",
-    "awardingUniverse.id",
-    "awardingUniverse.name",
-    "awardingUniverse.rootPlaceId"
-  ],
-  "examples": [
-    "{{#invoke:roapid|badges|3964419828587997}}",
-    "{{#invoke:roapid|badges|3964419828587997|displayDescription}}",
-    "{{#invoke:roapid|badges|3964419828587997|statistics|awardedCount}}"
-  ]
+	"description": "Legacy Roblox badges API integration yippee!",
+	"usage": {
+		"full_record": "{{#invoke:roapid|badges|<badgeId>}}",
+		"field": "{{#invoke:roapid|badges|<badgeId>|<field>}}",
+		"nested_field": "{{#invoke:roapid|badges|<badgeId>|<field>|<nestedField>}}",
+		"index": "{{#invoke:roapid|badges}}"
+	},
+	"fields": [
+		"id",
+		"name",
+		"description",
+		"displayName",
+		"displayDescription",
+		"enabled",
+		"iconImageId",
+		"displayIconImageId",
+		"created",
+		"updated",
+		"statistics.pastDayAwardedCount",
+		"statistics.awardedCount",
+		"statistics.winRatePercentage",
+		"awardingUniverse.id",
+		"awardingUniverse.name",
+		"awardingUniverse.rootPlaceId"
+	],
+	"examples": [
+		"{{#invoke:roapid|badges|3964419828587997}}",
+		"{{#invoke:roapid|badges|3964419828587997|displayDescription}}",
+		"{{#invoke:roapid|badges|3964419828587997|statistics|awardedCount}}"
+	]
 }

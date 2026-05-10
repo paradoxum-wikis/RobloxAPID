@@ -1,4 +1,5 @@
 # RobloxAPID
+
 **RobloxAPID**, also known as **roapid**, is a lightweight Go daemon that bridges the Roblox API to Fandom (and other MediaWiki) wikis.
 
 <p align="center"><img src="https://bin.t7ru.link/fol/roapid.gif" alt="RobloxAPID in action"></p>
@@ -45,6 +46,7 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 </table>
 
 ## Why use it?
+
 - **Always watching:** Runs quietly, tracking Roblox APIs and mirroring updates to your wiki as soon as they change.
 - **Dazzlingly quick:** Stores Roblox responses directly on the wiki, so you can pull data without delay.
 - **Set and forget:** Once configured, it keeps refreshing data and clearing caches on its own cadence.
@@ -56,6 +58,7 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 ...and of course, you don't need to host it at all if you choose to opt-in with us!
 
 ## Currently supported endpoints
+
 - **Open Cloud**:
   - Users
   - Groups
@@ -77,12 +80,14 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
    - A server, obviously.
 
 2. **Clone the Repository**:
+
    ```bash
    git clone https://github.com/paradoxum-wikis/RobloxAPID.git
    cd RobloxAPID
    ```
 
 3. **Build**:
+
    ```bash
    go build -o robloxapid .
    ```
@@ -90,14 +95,15 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 4. **Generate a Bot Password**:
    - Go to your wiki's **Special:BotPasswords** page.
    - Create a new bot password and enable these permissions (and any other you may need):
-      - `High-volume (bot) access`
-      - `Edit existing pages`
-      - `Edit the MediaWiki namespace and sitewide/user JSON`
-      - `Create, edit, and move pages`
+     - `High-volume (bot) access`
+     - `Edit existing pages`
+     - `Edit the MediaWiki namespace and sitewide/user JSON`
+     - `Create, edit, and move pages`
 
 ## Configuration
 
 ### config.json
+
 Main configuration file:
 
 > [!NOTE]
@@ -107,50 +113,51 @@ Main configuration file:
 
 ```json
 {
-    "server": {
-        "categoryCheckInterval": "1m",
-        "dataRefreshInterval": "30m"
-    },
-    "wiki": {
-        "apiUrl": "https://your-wiki.com/api.php",
-        "username": "YourWikiUsername@YourBotName",
-        "password": "YourBotPasswordHere",
-        "namespace": "Module"
-    },
-    "dynamicEndpoints": {
-        "categoryPrefix": "robloxapid-queue",
-        "apiMap": {
-            "badges": "https://badges.roblox.com/v1/badges/%s",
-            "users": "https://apis.roblox.com/cloud/v2/users/%s",
-            "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
-            "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
-            "places": "https://apis.roblox.com/cloud/v2/%s",
-            "games": "https://games.roblox.com/v1/games?universeIds=%s",
-            "favorites": "https://games.roblox.com/v1/games/%s/favorites/count",
-            "votes": "https://games.roblox.com/v1/games/%s/votes",
-            "virtual-events": "https://apis.roblox.com/virtual-events/v2/universes/%s/experience-events"
-        },
-        "refreshIntervals": {
-            "badges": "30m",
-            "about": "168h",
-            "users": "1h",
-            "groups": "1h",
-            "universes": "1h",
-            "places": "1h",
-            "games": "1h",
-            "favorites": "2h",
-            "votes": "2h",
-            "virtual-events": "3h"
-        }
-    },
-    "openCloud": {
-        "apiKey": "${OPEN_CLOUD_API_KEY}"
-    },
-    "roblox": {
-        "cookie": "${ROBLOX_COOKIE}"
-    }
+	"server": {
+		"categoryCheckInterval": "1m",
+		"dataRefreshInterval": "30m"
+	},
+	"wiki": {
+		"apiUrl": "https://your-wiki.com/api.php",
+		"username": "YourWikiUsername@YourBotName",
+		"password": "YourBotPasswordHere",
+		"namespace": "Module"
+	},
+	"dynamicEndpoints": {
+		"categoryPrefix": "robloxapid-queue",
+		"apiMap": {
+			"badges": "https://badges.roblox.com/v1/badges/%s",
+			"users": "https://apis.roblox.com/cloud/v2/users/%s",
+			"groups": "https://apis.roblox.com/cloud/v2/groups/%s",
+			"universes": "https://apis.roblox.com/cloud/v2/universes/%s",
+			"places": "https://apis.roblox.com/cloud/v2/%s",
+			"games": "https://games.roblox.com/v1/games?universeIds=%s",
+			"favorites": "https://games.roblox.com/v1/games/%s/favorites/count",
+			"votes": "https://games.roblox.com/v1/games/%s/votes",
+			"virtual-events": "https://apis.roblox.com/virtual-events/v2/universes/%s/experience-events"
+		},
+		"refreshIntervals": {
+			"badges": "30m",
+			"about": "168h",
+			"users": "1h",
+			"groups": "1h",
+			"universes": "1h",
+			"places": "1h",
+			"games": "1h",
+			"favorites": "2h",
+			"votes": "2h",
+			"virtual-events": "3h"
+		}
+	},
+	"openCloud": {
+		"apiKey": "${OPEN_CLOUD_API_KEY}"
+	},
+	"roblox": {
+		"cookie": "${ROBLOX_COOKIE}"
+	}
 }
 ```
+
 - `categoryCheckInterval`: How often to check for new categories (this is how it knows what to fetch).
 - `dataRefreshInterval`: Default refresh interval for endpoints.
 - `apiMap`: Maps endpoint types to API URLs (use `%s` for ID placeholder).
@@ -159,7 +166,9 @@ Main configuration file:
 - `roblox.cookie`: Optional `.ROBLOSECURITY` cookie for all endpoints. It is generally recommended to provide the token as it lets one get higher badge/game rate limits.
 
 ### about.json
+
 Static about information, if you're hosting publicly, do not change it:
+
 ```json
 {
 	"description": "A daemon that bridges the Roblox API to Fandom wikis.",
@@ -170,6 +179,7 @@ Static about information, if you're hosting publicly, do not change it:
 ```
 
 ### Index JSONs
+
 Static usage guides for the API endpoints. Each file documents relevant information such as usage, description, fields, and examples.
 
 They all sync to `Module:roapid/<endpoint>.json` so editors can surface instructions directly on the wiki.
@@ -177,9 +187,11 @@ They all sync to `Module:roapid/<endpoint>.json` so editors can surface instruct
 ## Usage
 
 1. **Run Locally**:
+
    ```bash
    ./robloxapid
    ```
+
    The daemon will start and vomit out the logs for you to debug and whatnot.
 
 2. **On the Wiki**:

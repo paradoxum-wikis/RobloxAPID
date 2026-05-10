@@ -1,26 +1,26 @@
 {
-  "description": "The groups open cloud API.",
-  "usage": {
-    "full_record": "{{#invoke:roapid|groups|<groupId>}}",
-    "field": "{{#invoke:roapid|groups|<groupId>|<field>}}",
-    "index": "{{#invoke:roapid|groups}}"
-  },
-  "fields": [
-    "path",
-    "createTime",
-    "updateTime",
-    "id",
-    "displayName",
-    "description",
-    "owner",
-    "memberCount",
-    "publicEntryAllowed",
-    "locked",
-    "verified"
-  ],
-  "examples": [
-    "{{#invoke:roapid|groups|1200769}}",
-    "{{#invoke:roapid|groups|1200769|displayName}}",
-    "{{#invoke:roapid|groups|1200769|memberCount}}"
-  ]
+	"description": "The groups open cloud API.",
+	"usage": {
+		"full_record": "{{#invoke:roapid|groups|<groupId>}}",
+		"field": "{{#invoke:roapid|groups|<groupId>|<field>}}",
+		"index": "{{#invoke:roapid|groups}}"
+	},
+	"fields": [
+		"path",
+		"createTime",
+		"updateTime",
+		"id",
+		"displayName",
+		"description",
+		"owner",
+		"memberCount",
+		"publicEntryAllowed",
+		"locked",
+		"verified"
+	],
+	"examples": [
+		"{{#invoke:roapid|groups|1200769}}",
+		"{{#invoke:roapid|groups|1200769|displayName}}",
+		"{{#invoke:roapid|groups|1200769|memberCount}}"
+	]
 }
