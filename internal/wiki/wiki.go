@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -101,13 +102,7 @@ func NewWikiClient(apiURL, username, password string, debug bool) (*WikiClient, 
 		return nil, fmt.Errorf("failed to parse userinfo: %w", err)
 	}
 
-	hasBot := false
-	for _, right := range res.Query.UserInfo.Rights {
-		if right == "bot" {
-			hasBot = true
-			break
-		}
-	}
+	hasBot := slices.Contains(res.Query.UserInfo.Rights, "bot")
 
 	if !hasBot {
 		return nil, errors.New("user does not have bot user rights, you may not proceed without it")
@@ -180,7 +175,7 @@ func (w *WikiClient) logRawJSON(label string, rawBody []byte) {
 	if !w.debug {
 		return
 	}
-	var m interface{}
+	var m any
 	if err := json.Unmarshal(rawBody, &m); err == nil {
 		prettyJSON, _ := json.MarshalIndent(m, "", "  ")
 		log.Printf("[DEBUG] %s:\n%s", label, string(prettyJSON))

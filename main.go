@@ -123,10 +123,7 @@ func main() {
 			return
 		}
 
-		workerCount := maxEndpointWorkers
-		if len(tasks) < workerCount {
-			workerCount = len(tasks)
-		}
+		workerCount := min(len(tasks), maxEndpointWorkers)
 
 		jobCh := make(chan refreshTask)
 		var wg sync.WaitGroup
