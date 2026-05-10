@@ -131,12 +131,6 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 		return fmt.Errorf("error checking changes for %s: %v", path, err)
 	}
 
-	log.Printf("Updating data for %s...", url)
-	dataToPush, err := storage.Save(path, newData)
-	if err != nil {
-		return fmt.Errorf("error saving data to %s: %v", path, err)
-	}
-
 	wikiTitle := fmt.Sprintf("%s:roapid/%s-%s.json", cfg.Wiki.Namespace, endpointType, id)
 
 	shouldPush := hasChanged
@@ -152,10 +146,13 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 
 	if !shouldPush {
 		log.Printf("No meaningful changes for %s (only roLastUpdated or none), skipping wiki push.", url)
-		if err := wikiClient.PurgeCategoryMembers(category); err != nil {
-			log.Printf("Error purging pages for %s: %v", category, err)
-		}
 		return nil
+	}
+
+	log.Printf("Updating data for %s...", url)
+	dataToPush, err := storage.Save(path, newData)
+	if err != nil {
+		return fmt.Errorf("error saving data to %s: %v", path, err)
 	}
 
 	log.Printf("Meaningful changes detected for %s, pushing to wiki.", url)
