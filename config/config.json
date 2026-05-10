@@ -1,48 +1,49 @@
 {
-  "server": {
-    "categoryCheckInterval": "1m",
-    "dataRefreshInterval": "30m"
-  },
-  "wiki": {
-    "apiUrl": "https://your-wiki.com/api.php",
-    "username": "${WIKI_USERNAME}",
-    "password": "${WIKI_PASSWORD}",
-    "namespace": "Module"
-  },
-  "dynamicEndpoints": {
-    "categoryPrefix": "robloxapid-queue",
-    "apiMap": {
-      "badges": "https://badges.roblox.com/v1/badges/%s",
-      "users": "https://apis.roblox.com/cloud/v2/users/%s",
-      "groups": "https://apis.roblox.com/cloud/v2/groups/%s",
-      "universes": "https://apis.roblox.com/cloud/v2/universes/%s",
-      "places": "https://apis.roblox.com/cloud/v2/%s",
-      "games": "https://games.roblox.com/v1/games?universeIds=%s",
-      "favorites": "https://games.roblox.com/v1/games/%s/favorites/count",
-      "votes": "https://games.roblox.com/v1/games/%s/votes",
-      "virtual-events": "https://apis.roblox.com/virtual-events/v2/universes/%s/experience-events"
-    },
-    "refreshIntervals": {
-      "badges": "30m",
-      "about": "168h",
-      "users": "1h",
-      "groups": "1h",
-      "universes": "1h",
-      "places": "1h",
-      "games": "1h",
-      "favorites": "2h",
-      "votes": "2h",
-      "virtual-events": "3h"
-    }
-  },
-  "openCloud": {
-    "apiKey": "${OPEN_CLOUD_KEY}"
-  },
-  "roblox": {
-    "cookie": "${ROBLOX_COOKIE}"
-  },
-  "luaMessages": {
-    "queueNote": "Publish this page and wait at least a minute for data to be fetched.",
-    "fieldPathNotFound": "Field path not found (%s), [[%s|see fields]]."
-  }
+	"server": {
+		"categoryCheckInterval": "1m",
+		"dataRefreshInterval": "30m"
+	},
+	"wiki": {
+		"apiUrl": "https://your-wiki.com/api.php",
+		"username": "${WIKI_USERNAME}",
+		"password": "${WIKI_PASSWORD}",
+		"namespace": "Module",
+		"debug": false
+	},
+	"dynamicEndpoints": {
+		"categoryPrefix": "robloxapid-queue",
+		"apiMap": {
+			"badges": "https://badges.roblox.com/v1/badges/%s",
+			"users": "https://apis.roblox.com/cloud/v2/users/%s",
+			"groups": "https://apis.roblox.com/cloud/v2/groups/%s",
+			"universes": "https://apis.roblox.com/cloud/v2/universes/%s",
+			"places": "https://apis.roblox.com/cloud/v2/%s",
+			"games": "https://games.roblox.com/v1/games?universeIds=%s",
+			"favorites": "https://games.roblox.com/v1/games/%s/favorites/count",
+			"votes": "https://games.roblox.com/v1/games/%s/votes",
+			"virtual-events": "https://apis.roblox.com/virtual-events/v2/universes/%s/experience-events"
+		},
+		"refreshIntervals": {
+			"badges": "30m",
+			"about": "168h",
+			"users": "1h",
+			"groups": "1h",
+			"universes": "1h",
+			"places": "1h",
+			"games": "1h",
+			"favorites": "2h",
+			"votes": "2h",
+			"virtual-events": "3h"
+		}
+	},
+	"openCloud": {
+		"apiKey": "${OPEN_CLOUD_KEY}"
+	},
+	"roblox": {
+		"cookie": "${ROBLOX_COOKIE}"
+	},
+	"luaMessages": {
+		"queueNote": "Publish this page and wait at least a minute for data to be fetched.",
+		"fieldPathNotFound": "Field path not found (%s), [[%s|see fields]]."
+	}
 }

@@ -31,6 +31,7 @@ type WikiConfig struct {
 	Username  string `json:"username"`
 	Password  string `json:"password"`
 	Namespace string `json:"namespace"`
+	Debug     bool   `json:"debug"`
 }
 
 type DynamicEndpointsConfig struct {
