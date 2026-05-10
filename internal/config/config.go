@@ -3,6 +3,7 @@ package config
 import (
 	"encoding/json"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -56,7 +57,7 @@ func LoadConfig(path string) (*Config, error) {
 
 	expanded := os.ExpandEnv(string(file))
 	config := &Config{}
-	err = json.Unmarshal([]byte(expanded), config)
+	err = json.NewDecoder(strings.NewReader(expanded)).Decode(config)
 	if err != nil {
 		return nil, err
 	}
