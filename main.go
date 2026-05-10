@@ -13,7 +13,7 @@ import (
 	"robloxapid/internal/wiki"
 )
 
-const roapiModuleVersion = "0.0.17"
+const roapiModuleVersion = "0.0.18"
 const maxEndpointWorkers = 6
 
 var roapiModuleContent = wiki.RoapidLua
