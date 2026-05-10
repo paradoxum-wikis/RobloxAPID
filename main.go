@@ -14,8 +14,17 @@ import (
 )
 
 const roapiModuleVersion = "0.0.17"
+const maxEndpointWorkers = 6
 
 var roapiModuleContent = wiki.RoapidLua
+
+type refreshTask struct {
+	category     string
+	endpointType string
+	id           string
+	startLog     string
+	errorPrefix  string
+}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -31,7 +40,7 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	wikiClient, err := wiki.NewWikiClient(cfg.Wiki.APIURL, cfg.Wiki.Username, cfg.Wiki.Password)
+	wikiClient, err := wiki.NewWikiClient(cfg.Wiki.APIURL, cfg.Wiki.Username, cfg.Wiki.Password, cfg.Wiki.Debug)
 	if err != nil {
 		log.Fatalf("Failed to create wiki client: %v", err)
 	}
@@ -91,6 +100,73 @@ func main() {
 	processedEndpoints := make(map[string]*endpointState)
 	var mu sync.Mutex
 	var workers sync.WaitGroup
+	inFlight := make(map[string]struct{})
+
+	tryStartCategory := func(category string) bool {
+		mu.Lock()
+		defer mu.Unlock()
+		if _, exists := inFlight[category]; exists {
+			return false
+		}
+		inFlight[category] = struct{}{}
+		return true
+	}
+
+	finishCategory := func(category string) {
+		mu.Lock()
+		delete(inFlight, category)
+		mu.Unlock()
+	}
+
+	runRefreshTasks := func(tasks []refreshTask) {
+		if len(tasks) == 0 {
+			return
+		}
+
+		workerCount := maxEndpointWorkers
+		if len(tasks) < workerCount {
+			workerCount = len(tasks)
+		}
+
+		jobCh := make(chan refreshTask)
+		var wg sync.WaitGroup
+		for i := 0; i < workerCount; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for task := range jobCh {
+					select {
+					case <-ctx.Done():
+						return
+					default:
+					}
+
+					if !tryStartCategory(task.category) {
+						log.Printf("[DEBUG] refresh: skipping %s (already in progress)", task.category)
+						continue
+					}
+
+					func() {
+						defer finishCategory(task.category)
+						if task.startLog != "" {
+							log.Print(task.startLog)
+						}
+						if err := processEndpoint(wikiClient, cfg, task.endpointType, task.id, task.category); err != nil {
+							log.Printf("Error %s endpoint %s: %v", task.errorPrefix, task.category, err)
+							return
+						}
+						updateSchedule(processedEndpoints, &mu, task.category, task.endpointType, cfg, time.Time{})
+					}()
+				}
+			}()
+		}
+
+		for _, task := range tasks {
+			jobCh <- task
+		}
+		close(jobCh)
+		wg.Wait()
+	}
 
 	startTicker := func(interval time.Duration, name string, fn func()) {
 		if interval <= 0 {
@@ -147,6 +223,12 @@ func main() {
 				default:
 				}
 
+				if !tryStartCategory(r.category) {
+					log.Printf("[DEBUG] bootstrap: skipping %s (already in progress)", r.category)
+					return
+				}
+				defer finishCategory(r.category)
+
 				log.Printf("[DEBUG] bootstrap: immediate refresh %s", r.category)
 				if err := processEndpoint(wikiClient, cfg, r.endpointType, r.id, r.category); err != nil {
 					log.Printf("Error refreshing bootstrapped endpoint %s: %v", r.category, err)
@@ -166,6 +248,8 @@ func main() {
 			return
 		}
 
+		now := time.Now()
+		tasks := make([]refreshTask, 0, len(categories))
 		for _, category := range categories {
 			endpointType, id, err := parseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
 			if err != nil {
@@ -178,20 +262,23 @@ func main() {
 			mu.Unlock()
 
 			if !exists {
-				if err := processEndpoint(wikiClient, cfg, endpointType, id, category); err != nil {
-					log.Printf("Error processing new endpoint %s: %v", category, err)
-				} else {
-					updateSchedule(processedEndpoints, &mu, category, endpointType, cfg, time.Time{})
-				}
-			} else if time.Now().After(state.nextRun) {
-				log.Printf("Refreshing endpoint %s...", category)
-				if err := processEndpoint(wikiClient, cfg, state.endpointType, id, category); err != nil {
-					log.Printf("Error refreshing endpoint %s: %v", category, err)
-				} else {
-					updateSchedule(processedEndpoints, &mu, category, state.endpointType, cfg, time.Time{})
-				}
+				tasks = append(tasks, refreshTask{
+					category:     category,
+					endpointType: endpointType,
+					id:           id,
+					errorPrefix:  "processing new",
+				})
+			} else if now.After(state.nextRun) {
+				tasks = append(tasks, refreshTask{
+					category:     category,
+					endpointType: state.endpointType,
+					id:           id,
+					startLog:     "Refreshing endpoint " + category + "...",
+					errorPrefix:  "refreshing",
+				})
 			}
 		}
+		runRefreshTasks(tasks)
 	}
 
 	checkCategories()
@@ -220,8 +307,10 @@ func main() {
 		}
 		mu.Unlock()
 
+		now := time.Now()
+		tasks := make([]refreshTask, 0, len(endpointsToRefresh))
 		for category, state := range endpointsToRefresh {
-			if time.Now().Before(state.nextRun) {
+			if now.Before(state.nextRun) {
 				log.Printf("[DEBUG] refresh: skipping %s (nextRun %v)", category, state.nextRun)
 				continue
 			}
@@ -232,24 +321,15 @@ func main() {
 				continue
 			}
 
-			log.Printf("Refreshing endpoint %s...", category)
-			if err := processEndpoint(wikiClient, cfg, endpointType, id, category); err != nil {
-				log.Printf("Error refreshing endpoint %s: %v", category, err)
-				continue
-			}
-
-			mu.Lock()
-			if st, ok := processedEndpoints[category]; ok && st != nil {
-				st.nextRun = time.Now().Add(st.interval)
-			} else {
-				processedEndpoints[category] = &endpointState{
-					endpointType: endpointType,
-					interval:     state.interval,
-					nextRun:      time.Now().Add(state.interval),
-				}
-			}
-			mu.Unlock()
+			tasks = append(tasks, refreshTask{
+				category:     category,
+				endpointType: endpointType,
+				id:           id,
+				startLog:     "Refreshing endpoint " + category + "...",
+				errorPrefix:  "refreshing",
+			})
 		}
+		runRefreshTasks(tasks)
 	})
 
 	<-ctx.Done()
