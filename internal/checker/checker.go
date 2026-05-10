@@ -21,6 +21,11 @@ func HasChanged(path string, newData []byte) (bool, error) {
 		return false, err
 	}
 
+	if bytes.Equal(oldData, newData) {
+		log.Printf("[DEBUG] checker.HasChanged: raw compare -> unchanged: %s", fullPath)
+		return false, nil
+	}
+
 	var oldDataMap map[string]json.RawMessage
 	if err := json.Unmarshal(oldData, &oldDataMap); err != nil {
 		eq := bytes.Equal(oldData, newData)
@@ -30,12 +35,6 @@ func HasChanged(path string, newData []byte) (bool, error) {
 		}
 		log.Printf("[DEBUG] checker.HasChanged: raw compare -> changed: %s", fullPath)
 		return true, nil
-	}
-	delete(oldDataMap, "roLastUpdated")
-	oldAPIData, err := json.Marshal(oldDataMap)
-	if err != nil {
-		log.Printf("[ERROR] checker.HasChanged: failed to marshal old data for %s: %v", fullPath, err)
-		return false, err
 	}
 
 	var newDataMap map[string]json.RawMessage
@@ -48,18 +47,34 @@ func HasChanged(path string, newData []byte) (bool, error) {
 		log.Printf("[DEBUG] checker.HasChanged: new data unmarshal failed but raw compare -> changed: %s", fullPath)
 		return true, nil
 	}
-	delete(newDataMap, "roLastUpdated")
-	newAPIData, err := json.Marshal(newDataMap)
-	if err != nil {
-		log.Printf("[ERROR] checker.HasChanged: failed to marshal new data for %s: %v", fullPath, err)
-		return false, err
-	}
-
-	changed := !bytes.Equal(oldAPIData, newAPIData)
+	changed := !equalIgnoringRo(oldDataMap, newDataMap)
 	if changed {
 		log.Printf("[DEBUG] checker.HasChanged: content changed: %s", fullPath)
 	} else {
 		log.Printf("[DEBUG] checker.HasChanged: content unchanged: %s", fullPath)
 	}
 	return changed, nil
+}
+
+func equalIgnoringRo(oldDataMap, newDataMap map[string]json.RawMessage) bool {
+	for key, oldValue := range oldDataMap {
+		if key == "roLastUpdated" {
+			continue
+		}
+		newValue, ok := newDataMap[key]
+		if !ok || !bytes.Equal(oldValue, newValue) {
+			return false
+		}
+	}
+
+	for key := range newDataMap {
+		if key == "roLastUpdated" {
+			continue
+		}
+		if _, ok := oldDataMap[key]; !ok {
+			return false
+		}
+	}
+
+	return true
 }
