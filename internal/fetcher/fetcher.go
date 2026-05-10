@@ -1,8 +1,10 @@
 package fetcher
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -17,7 +19,7 @@ func Fetch(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	return io.ReadAll(resp.Body)
+	return readResponseBody(url, resp)
 }
 
 func FetchWithHeaders(url string, headers map[string]string) ([]byte, error) {
@@ -37,5 +39,13 @@ func FetchWithHeaders(url string, headers map[string]string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
+	return readResponseBody(url, resp)
+}
+
+func readResponseBody(url string, resp *http.Response) ([]byte, error) {
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return nil, fmt.Errorf("request failed (%d) for %s: %s", resp.StatusCode, url, strings.TrimSpace(string(body)))
+	}
 	return io.ReadAll(resp.Body)
 }
