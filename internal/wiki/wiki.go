@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -16,9 +15,12 @@ import (
 )
 
 type WikiClient struct {
-	client   *mwclient.Client
-	editMu   sync.Mutex
-	lastEdit time.Time
+	client    *mwclient.Client
+	editMu    sync.Mutex
+	lastEdit  time.Time
+	tokenMu   sync.Mutex
+	csrfToken string
+	debug     bool
 }
 
 type mwUserInfoResponse struct {
@@ -71,13 +73,11 @@ type mwCategoryMembersResponse struct {
 	} `json:"query"`
 }
 
-func NewWikiClient(apiURL, username, password string) (*WikiClient, error) {
+func NewWikiClient(apiURL, username, password string, debug bool) (*WikiClient, error) {
 	client, err := mwclient.New(apiURL, "RobloxAPID/1.0 (https://github.com/paradoxum-wikis/RobloxAPID; User:DarkGabonnie)")
 	if err != nil {
 		return nil, err
 	}
-
-	client.SetDebug(os.Stdout)
 
 	if err := client.Login(username, password); err != nil {
 		return nil, err
@@ -113,13 +113,20 @@ func NewWikiClient(apiURL, username, password string) (*WikiClient, error) {
 		return nil, errors.New("user does not have bot user rights, you may not proceed without it")
 	}
 
-	return &WikiClient{client: client}, nil
+	w := &WikiClient{
+		client: client,
+		debug:  debug,
+	}
+	if w.debug {
+		client.SetDebug(log.Writer())
+	}
+	return w, nil
 }
 
 func (w *WikiClient) Push(title, content, summary string) error {
 	w.throttleEdit()
 	log.Printf("[DEBUG] wiki.Push: preparing to push page %s (summary: %s)", title, summary)
-	token, err := w.client.GetToken("csrf")
+	token, err := w.getCSRFToken(false)
 	if err != nil {
 		log.Printf("[ERROR] wiki.Push: failed to get token for %s: %v", title, err)
 		return err
@@ -135,6 +142,16 @@ func (w *WikiClient) Push(title, content, summary string) error {
 	}
 
 	_, err = w.client.Post(p)
+	if err != nil && isBadTokenError(err) {
+		log.Printf("[DEBUG] wiki.Push: refreshing invalid token for %s", title)
+		token, tokenErr := w.getCSRFToken(true)
+		if tokenErr != nil {
+			log.Printf("[ERROR] wiki.Push: failed to refresh token for %s: %v", title, tokenErr)
+			return tokenErr
+		}
+		p["token"] = token
+		_, err = w.client.Post(p)
+	}
 	if err != nil {
 		log.Printf("[ERROR] wiki.Push: failed to push %s: %v", title, err)
 		return err
@@ -159,7 +176,10 @@ func (w *WikiClient) throttleEdit() {
 	w.lastEdit = now
 }
 
-func logRawJSON(label string, rawBody []byte) {
+func (w *WikiClient) logRawJSON(label string, rawBody []byte) {
+	if !w.debug {
+		return
+	}
 	var m interface{}
 	if err := json.Unmarshal(rawBody, &m); err == nil {
 		prettyJSON, _ := json.MarshalIndent(m, "", "  ")
@@ -184,7 +204,7 @@ func (w *WikiClient) GetPageByName(pageName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	logRawJSON("GetPageByName response:", respBody)
+	w.logRawJSON("GetPageByName response:", respBody)
 
 	var res mwRevisionsResponse
 	if err := json.Unmarshal(respBody, &res); err != nil {
@@ -220,7 +240,7 @@ func (w *WikiClient) PageExists(title string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	logRawJSON("PageExists response", respBody)
+	w.logRawJSON("PageExists response", respBody)
 
 	var res mwInfoResponse
 	if err := json.Unmarshal(respBody, &res); err != nil {
@@ -288,7 +308,7 @@ func (w *WikiClient) GetCategoriesWithPrefix(prefix string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	logRawJSON("GetCategoriesWithPrefix response", respBody)
+	w.logRawJSON("GetCategoriesWithPrefix response", respBody)
 
 	var res mwAllCategoriesResponse
 	if err := json.Unmarshal(respBody, &res); err != nil {
@@ -331,7 +351,7 @@ func (w *WikiClient) GetCategoryMembers(category string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	logRawJSON("GetCategoryMembers response", respBody)
+	w.logRawJSON("GetCategoryMembers response", respBody)
 
 	var res mwCategoryMembersResponse
 	if err := json.Unmarshal(respBody, &res); err != nil {
@@ -367,6 +387,30 @@ func (w *WikiClient) PurgeCategoryMembers(category string) error {
 		return err
 	}
 	return w.PurgePages(titles)
+}
+
+func (w *WikiClient) getCSRFToken(forceRefresh bool) (string, error) {
+	w.tokenMu.Lock()
+	defer w.tokenMu.Unlock()
+
+	if !forceRefresh && w.csrfToken != "" {
+		return w.csrfToken, nil
+	}
+
+	token, err := w.client.GetToken("csrf")
+	if err != nil {
+		return "", err
+	}
+	w.csrfToken = token
+	return token, nil
+}
+
+func isBadTokenError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "badtoken") || strings.Contains(msg, "invalid csrf token")
 }
 
 //go:embed roapid.lua
