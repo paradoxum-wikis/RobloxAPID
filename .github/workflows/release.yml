@@ -25,6 +25,7 @@ jobs:
                   mkdir -p dist/windows
                   cp dist/robloxapid.exe dist/windows/
                   cp README.md LICENSE dist/windows/
+                  cp -r config dist/windows/
                   cd dist/windows && zip -r ../../robloxapid-windows-amd64.zip .
 
             - name: Package Linux
@@ -32,6 +33,7 @@ jobs:
                   mkdir -p dist/linux
                   cp dist/robloxapid dist/linux/
                   cp README.md LICENSE dist/linux/
+                  cp -r config dist/linux/
                   cd dist/linux && tar -czf ../../robloxapid-linux-amd64.tar.gz .
 
             - uses: softprops/action-gh-release@v3
