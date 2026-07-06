@@ -60,45 +60,47 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 ## Currently supported endpoints
 
 - **Open Cloud**:
-  - Users
-  - Groups
-  - Universes
-  - Places
+    - Users
+    - Groups
+    - Universes
+    - Places
 - **Legacy**:
-  - Badges
-  - Games
-  - Favorites
-  - Votes
+    - Badges
+    - Games
+    - Favorites
+    - Votes
 
 - **Internal**:
-  - Virtual Events
+    - Virtual Events
 
 ## Installation
 
+You can download a pre-built binary in [releases](https://github.com/paradoxum-wikis/RobloxAPID/releases). Otherwise, follow the steps below to build from source:
+
 1. **Prerequisites**:
-   - Go 1.22.3 or later.
-   - A server, obviously.
+    - Go 1.22.3 or later.
+    - A server, obviously.
 
 2. **Clone the Repository**:
 
-   ```bash
-   git clone https://github.com/paradoxum-wikis/RobloxAPID.git
-   cd RobloxAPID
-   ```
+    ```bash
+    git clone https://github.com/paradoxum-wikis/RobloxAPID.git
+    cd RobloxAPID
+    ```
 
 3. **Build**:
 
-   ```bash
-   go build -o robloxapid .
-   ```
+    ```bash
+    go build -o robloxapid .
+    ```
 
 4. **Generate a Bot Password**:
-   - Go to your wiki's **Special:BotPasswords** page.
-   - Create a new bot password and enable these permissions (and any other you may need):
-     - `High-volume (bot) access`
-     - `Edit existing pages`
-     - `Edit the MediaWiki namespace and sitewide/user JSON`
-     - `Create, edit, and move pages`
+    - Go to your wiki's **Special:BotPasswords** page.
+    - Create a new bot password and enable these permissions (and any other you may need):
+        - `High-volume (bot) access`
+        - `Edit existing pages`
+        - `Edit the MediaWiki namespace and sitewide/user JSON`
+        - `Create, edit, and move pages`
 
 ## Configuration
 
@@ -188,19 +190,19 @@ They all sync to `Module:roapid/<endpoint>.json` so editors can surface instruct
 
 1. **Run Locally**:
 
-   ```bash
-   ./robloxapid
-   ```
+    ```bash
+    ./robloxapid
+    ```
 
-   The daemon will start and vomit out the logs for you to debug and whatnot.
+    The daemon will start and vomit out the logs for you to debug and whatnot.
 
 2. **On the Wiki**:
-   - The Lua module `Module:Roapid` is automatically set up.
-   - Use invokes to access data:
-     - `{{#invoke:roapid|badges|123456|description}}`: Gets the description field for badge ID 123456.
-   - When you're accessing an ID that isn't mirrored yet, wait for the daemon to fetch it and it will be up in less than a minute.
-   - The page will have missing data for a while, but that is intentional.
-   - We also recommend making a template wrapper to abstract the invokes.
+    - The Lua module `Module:Roapid` is automatically set up.
+    - Use invokes to access data:
+        - `{{#invoke:roapid|badges|123456|description}}`: Gets the description field for badge ID 123456.
+    - When you're accessing an ID that isn't mirrored yet, wait for the daemon to fetch it and it will be up in less than a minute.
+    - The page will have missing data for a while, but that is intentional.
+    - We also recommend making a template wrapper to abstract the invokes.
 
 ## License
 
