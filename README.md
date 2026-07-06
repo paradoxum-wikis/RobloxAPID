@@ -78,7 +78,7 @@ RobloxAPID requires an account with [**bot userrights**](https://community.fando
 You can download a pre-built binary in [releases](https://github.com/paradoxum-wikis/RobloxAPID/releases). Otherwise, follow the steps below to build from source:
 
 1. **Prerequisites**:
-    - Go 1.22.3 or later.
+    - Go 1.26.4 or later.
     - A server, obviously.
 
 2. **Clone the Repository**:
