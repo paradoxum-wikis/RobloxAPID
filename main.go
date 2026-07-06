@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"maps"
 	"os/signal"
 	"strings"
 	"sync"
@@ -127,10 +128,8 @@ func main() {
 
 		jobCh := make(chan refreshTask)
 		var wg sync.WaitGroup
-		for i := 0; i < workerCount; i++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+		for range workerCount {
+			wg.Go(func() {
 				for task := range jobCh {
 					select {
 					case <-ctx.Done():
@@ -155,7 +154,7 @@ func main() {
 						updateSchedule(processedEndpoints, &mu, task.category, task.endpointType, cfg, time.Time{})
 					}()
 				}
-			}()
+			})
 		}
 
 		for _, task := range tasks {
@@ -169,9 +168,7 @@ func main() {
 		if interval <= 0 {
 			return
 		}
-		workers.Add(1)
-		go func() {
-			defer workers.Done()
+		workers.Go(func() {
 			ticker := time.NewTicker(interval)
 			defer ticker.Stop()
 			for {
@@ -183,7 +180,7 @@ func main() {
 					fn()
 				}
 			}
-		}()
+		})
 	}
 
 	bootstrapFromData(processedEndpoints, &mu, cfg)
@@ -298,10 +295,7 @@ func main() {
 		log.Println("Refreshing existing data...")
 
 		mu.Lock()
-		endpointsToRefresh := make(map[string]*endpointState)
-		for k, v := range processedEndpoints {
-			endpointsToRefresh[k] = v
-		}
+		endpointsToRefresh := maps.Clone(processedEndpoints)
 		mu.Unlock()
 
 		now := time.Now()

@@ -50,7 +50,7 @@ func normalizeCategory(category string) string {
 }
 
 func updateSchedule(processed map[string]*endpointState, mu *sync.Mutex, category, endpointType string, cfg *config.Config, next time.Time) {
-	interval := time.Duration(0)
+	var interval time.Duration
 
 	mu.Lock()
 	if state, ok := processed[category]; ok && state != nil && state.interval > 0 {
@@ -76,7 +76,7 @@ func updateSchedule(processed map[string]*endpointState, mu *sync.Mutex, categor
 	mu.Lock()
 	state, ok := processed[category]
 	if !ok {
-		state = &endpointState{}
+		state = new(endpointState)
 		processed[category] = state
 	}
 	state.endpointType = endpointType

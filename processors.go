@@ -123,12 +123,12 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	}
 
 	if err != nil {
-		return fmt.Errorf("error fetching data from %s: %v", url, err)
+		return fmt.Errorf("error fetching data from %s: %w", url, err)
 	}
 
 	hasChanged, err := checker.HasChanged(path, newData)
 	if err != nil {
-		return fmt.Errorf("error checking changes for %s: %v", path, err)
+		return fmt.Errorf("error checking changes for %s: %w", path, err)
 	}
 
 	wikiTitle := fmt.Sprintf("%s:roapid/%s-%s.json", cfg.Wiki.Namespace, endpointType, id)
@@ -152,14 +152,14 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	log.Printf("Updating data for %s...", url)
 	dataToPush, err := storage.Save(path, newData)
 	if err != nil {
-		return fmt.Errorf("error saving data to %s: %v", path, err)
+		return fmt.Errorf("error saving data to %s: %w", path, err)
 	}
 
 	log.Printf("Meaningful changes detected for %s, pushing to wiki.", url)
 	summary := fmt.Sprintf("Automated update from %s", url)
 	err = wikiClient.Push(wikiTitle, string(dataToPush), summary)
 	if err != nil {
-		return fmt.Errorf("error pushing to wiki for %s: %v", wikiTitle, err)
+		return fmt.Errorf("error pushing to wiki for %s: %w", wikiTitle, err)
 	}
 
 	if err := wikiClient.PurgeCategoryMembers(category); err != nil {

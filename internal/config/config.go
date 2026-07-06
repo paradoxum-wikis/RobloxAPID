@@ -56,7 +56,7 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	expanded := os.ExpandEnv(string(file))
-	config := &Config{}
+	config := new(Config)
 	err = json.NewDecoder(strings.NewReader(expanded)).Decode(config)
 	if err != nil {
 		return nil, err
