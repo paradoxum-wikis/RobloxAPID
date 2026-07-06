@@ -9,9 +9,20 @@ import (
 )
 
 func HasChanged(path string, newData []byte) (bool, error) {
+	dataRoot, err := os.OpenRoot("data")
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Printf("[DEBUG] checker.HasChanged: data directory does not exist -> treat as changed")
+			return true, nil
+		}
+		log.Printf("[ERROR] checker.HasChanged: failed to open data root: %v", err)
+		return false, err
+	}
+	defer dataRoot.Close()
+
 	fullPath := filepath.Join("data", path)
 	log.Printf("[DEBUG] checker.HasChanged: checking %s", fullPath)
-	oldData, err := os.ReadFile(fullPath)
+	oldData, err := dataRoot.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Printf("[DEBUG] checker.HasChanged: file does not exist -> treat as changed: %s", fullPath)

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -22,19 +23,33 @@ func Save(path string, data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	fullPath := filepath.Join("data", path)
-	if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
+	dataRoot, err := os.OpenRoot("data")
+	if err != nil {
+		if os.IsNotExist(err) {
+			if err := os.MkdirAll("data", 0755); err != nil {
+				return nil, err
+			}
+			dataRoot, err = os.OpenRoot("data")
+		}
+		if err != nil {
+			return nil, err
+		}
+	}
+	defer dataRoot.Close()
+
+	dir := filepath.Dir(path)
+	if err := dataRoot.MkdirAll(dir, 0755); err != nil {
 		return nil, err
 	}
 
-	tempFile, err := os.CreateTemp(filepath.Dir(fullPath), filepath.Base(path)+".tmp-*")
+	tempName := filepath.Join(dir, fmt.Sprintf("%s.tmp-%s", filepath.Base(path), rand.Text()))
+	tempFile, err := dataRoot.OpenFile(tempName, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		return nil, err
 	}
-	tempPath := tempFile.Name()
 	defer func() {
 		tempFile.Close()
-		os.Remove(tempPath)
+		_ = dataRoot.Remove(tempName)
 	}()
 
 	if _, err := tempFile.Write(dataToSave); err != nil {
@@ -47,11 +62,11 @@ func Save(path string, data []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	if err := os.Rename(tempPath, fullPath); err != nil {
-		if removeErr := os.Remove(fullPath); removeErr != nil && !os.IsNotExist(removeErr) {
-			return nil, fmt.Errorf("failed to replace %s: %w", fullPath, err)
+	if err := dataRoot.Rename(tempName, path); err != nil {
+		if removeErr := dataRoot.Remove(path); removeErr != nil && !os.IsNotExist(removeErr) {
+			return nil, fmt.Errorf("failed to replace %s: %w", filepath.Join("data", path), err)
 		}
-		if err := os.Rename(tempPath, fullPath); err != nil {
+		if err := dataRoot.Rename(tempName, path); err != nil {
 			return nil, err
 		}
 	}
