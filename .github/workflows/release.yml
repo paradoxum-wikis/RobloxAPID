@@ -1,0 +1,43 @@
+name: Build and Release
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    build-and-release:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-go@v6
+              with:
+                  go-version-file: go.mod
+
+            - name: Build
+              run: |
+                  GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/robloxapid.exe .
+                  GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/robloxapid .
+
+            - name: Package Windows
+              run: |
+                  mkdir -p dist/windows
+                  cp dist/robloxapid.exe dist/windows/
+                  cp README.md LICENSE dist/windows/
+                  cd dist/windows && zip -r ../../robloxapid-windows-amd64.zip .
+
+            - name: Package Linux
+              run: |
+                  mkdir -p dist/linux
+                  cp dist/robloxapid dist/linux/
+                  cp README.md LICENSE dist/linux/
+                  cd dist/linux && tar -czf ../../robloxapid-linux-amd64.tar.gz .
+
+            - uses: softprops/action-gh-release@v3
+              with:
+                  tag_name: build-${{ github.run_number }}
+                  name: build-${{ github.run_number }}
+                  files: |
+                      robloxapid-windows-amd64.zip
+                      robloxapid-linux-amd64.tar.gz
