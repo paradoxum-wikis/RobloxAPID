@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"fmt"
@@ -11,10 +11,10 @@ import (
 	"robloxapid/internal/config"
 )
 
-type endpointState struct {
-	endpointType string
-	interval     time.Duration
-	nextRun      time.Time
+type EndpointState struct {
+	EndpointType string
+	Interval     time.Duration
+	NextRun      time.Time
 }
 
 var categoryNormalizer = strings.NewReplacer(
@@ -30,7 +30,7 @@ var categoryNormalizer = strings.NewReplacer(
 	"\u202f", "", // nnbsp
 )
 
-func parseCategory(category, prefix string) (endpointType, id string, err error) {
+func ParseCategory(category, prefix string) (endpointType, id string, err error) {
 	normalized := normalizeCategory(category)
 	expectedPrefix := "Category:" + prefix + "-"
 	if len(normalized) < len(expectedPrefix) || !strings.EqualFold(normalized[:len(expectedPrefix)], expectedPrefix) {
@@ -49,12 +49,12 @@ func normalizeCategory(category string) string {
 	return categoryNormalizer.Replace(trimmed)
 }
 
-func updateSchedule(processed map[string]*endpointState, mu *sync.Mutex, category, endpointType string, cfg *config.Config, next time.Time) {
+func UpdateSchedule(processed map[string]*EndpointState, mu *sync.Mutex, category, endpointType string, cfg *config.Config, next time.Time) {
 	var interval time.Duration
 
 	mu.Lock()
-	if state, ok := processed[category]; ok && state != nil && state.interval > 0 {
-		interval = state.interval
+	if state, ok := processed[category]; ok && state != nil && state.Interval > 0 {
+		interval = state.Interval
 	}
 	mu.Unlock()
 
@@ -76,16 +76,16 @@ func updateSchedule(processed map[string]*endpointState, mu *sync.Mutex, categor
 	mu.Lock()
 	state, ok := processed[category]
 	if !ok {
-		state = new(endpointState)
+		state = new(EndpointState)
 		processed[category] = state
 	}
-	state.endpointType = endpointType
-	state.interval = interval
-	state.nextRun = next
+	state.EndpointType = endpointType
+	state.Interval = interval
+	state.NextRun = next
 	mu.Unlock()
 }
 
-func bootstrapFromData(processed map[string]*endpointState, mu *sync.Mutex, cfg *config.Config) {
+func BootstrapFromData(processed map[string]*EndpointState, mu *sync.Mutex, cfg *config.Config) {
 	entries, err := os.ReadDir("data")
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -126,7 +126,7 @@ func bootstrapFromData(processed map[string]*endpointState, mu *sync.Mutex, cfg 
 		}
 
 		log.Printf("[DEBUG] bootstrap: scheduling %s from %s", category, name)
-		updateSchedule(processed, mu, category, endpointType, cfg, time.Now())
+		UpdateSchedule(processed, mu, category, endpointType, cfg, time.Now())
 		count++
 	}
 

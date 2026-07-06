@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"fmt"
@@ -72,7 +72,7 @@ var staticDocs = []staticDoc{
 
 const iso8601Millis = "2006-01-02T15:04:05.000Z"
 
-func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string) error {
+func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string) error {
 	urlTemplate, ok := cfg.DynamicEndpoints.APIMap[endpointType]
 	if !ok {
 		return fmt.Errorf("unknown endpoint type: %s", endpointType)
@@ -170,7 +170,7 @@ func processEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	return nil
 }
 
-func processAboutEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config) error {
+func ProcessAboutEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config) error {
 	const aboutFilename = "about.json"
 	localPath := filepath.Join("config", aboutFilename)
 
@@ -242,7 +242,7 @@ func processStaticDoc(wikiClient *wiki.WikiClient, cfg *config.Config, doc stati
 	return nil
 }
 
-func syncStaticDocs(wikiClient *wiki.WikiClient, cfg *config.Config) error {
+func SyncStaticDocs(wikiClient *wiki.WikiClient, cfg *config.Config) error {
 	var firstErr error
 	for _, doc := range staticDocs {
 		if err := processStaticDoc(wikiClient, cfg, doc); err != nil {

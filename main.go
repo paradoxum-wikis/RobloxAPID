@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	prog "robloxapid/internal"
 	"robloxapid/internal/config"
 	"robloxapid/internal/wiki"
 )
@@ -91,14 +92,14 @@ func main() {
 
 	log.Printf("Starting with intervals: categories every %v, default refresh every %v", categoryInterval, dataInterval)
 
-	if err := processAboutEndpoint(wikiClient, cfg); err != nil {
+	if err := prog.ProcessAboutEndpoint(wikiClient, cfg); err != nil {
 		log.Printf("Initial about sync failed: %v", err)
 	}
-	if err := syncStaticDocs(wikiClient, cfg); err != nil {
+	if err := prog.SyncStaticDocs(wikiClient, cfg); err != nil {
 		log.Printf("Initial documentation sync failed: %v", err)
 	}
 
-	processedEndpoints := make(map[string]*endpointState)
+	processedEndpoints := make(map[string]*prog.EndpointState)
 	var mu sync.Mutex
 	var workers sync.WaitGroup
 	inFlight := make(map[string]struct{})
@@ -147,11 +148,11 @@ func main() {
 						if task.startLog != "" {
 							log.Print(task.startLog)
 						}
-						if err := processEndpoint(wikiClient, cfg, task.endpointType, task.id, task.category); err != nil {
+						if err := prog.ProcessEndpoint(wikiClient, cfg, task.endpointType, task.id, task.category); err != nil {
 							log.Printf("Error %s endpoint %s: %v", task.errorPrefix, task.category, err)
 							return
 						}
-						updateSchedule(processedEndpoints, &mu, task.category, task.endpointType, cfg, time.Time{})
+						prog.UpdateSchedule(processedEndpoints, &mu, task.category, task.endpointType, cfg, time.Time{})
 					}()
 				}
 			})
@@ -183,7 +184,7 @@ func main() {
 		})
 	}
 
-	bootstrapFromData(processedEndpoints, &mu, cfg)
+	prog.BootstrapFromData(processedEndpoints, &mu, cfg)
 
 	{
 		now := time.Now()
@@ -192,8 +193,8 @@ func main() {
 
 		mu.Lock()
 		for category, st := range processedEndpoints {
-			if !st.nextRun.IsZero() && !now.Before(st.nextRun) {
-				et, id, err := parseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
+			if !st.NextRun.IsZero() && !now.Before(st.NextRun) {
+				et, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
 				if err != nil {
 					continue
 				}
@@ -224,11 +225,11 @@ func main() {
 				defer finishCategory(r.category)
 
 				log.Printf("[DEBUG] bootstrap: immediate refresh %s", r.category)
-				if err := processEndpoint(wikiClient, cfg, r.endpointType, r.id, r.category); err != nil {
+				if err := prog.ProcessEndpoint(wikiClient, cfg, r.endpointType, r.id, r.category); err != nil {
 					log.Printf("Error refreshing bootstrapped endpoint %s: %v", r.category, err)
 					return
 				}
-				updateSchedule(processedEndpoints, &mu, r.category, r.endpointType, cfg, time.Time{})
+				prog.UpdateSchedule(processedEndpoints, &mu, r.category, r.endpointType, cfg, time.Time{})
 			}(r)
 		}
 	}
@@ -245,7 +246,7 @@ func main() {
 		now := time.Now()
 		tasks := make([]refreshTask, 0, len(categories))
 		for _, category := range categories {
-			endpointType, id, err := parseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
+			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
 			if err != nil {
 				log.Printf("Error parsing category %s: %v", category, err)
 				continue
@@ -262,10 +263,10 @@ func main() {
 					id:           id,
 					errorPrefix:  "processing new",
 				})
-			} else if now.After(state.nextRun) {
+			} else if now.After(state.NextRun) {
 				tasks = append(tasks, refreshTask{
 					category:     category,
-					endpointType: state.endpointType,
+					endpointType: state.EndpointType,
 					id:           id,
 					startLog:     "Refreshing endpoint " + category + "...",
 					errorPrefix:  "refreshing",
@@ -278,13 +279,13 @@ func main() {
 	checkCategories()
 
 	startTicker(aboutInterval, "about sync", func() {
-		if err := processAboutEndpoint(wikiClient, cfg); err != nil {
+		if err := prog.ProcessAboutEndpoint(wikiClient, cfg); err != nil {
 			log.Printf("Scheduled about sync failed: %v", err)
 		}
 	})
 
 	startTicker(documentationInterval, "documentation sync", func() {
-		if err := syncStaticDocs(wikiClient, cfg); err != nil {
+		if err := prog.SyncStaticDocs(wikiClient, cfg); err != nil {
 			log.Printf("Scheduled documentation sync failed: %v", err)
 		}
 	})
@@ -301,12 +302,12 @@ func main() {
 		now := time.Now()
 		tasks := make([]refreshTask, 0, len(endpointsToRefresh))
 		for category, state := range endpointsToRefresh {
-			if now.Before(state.nextRun) {
-				log.Printf("[DEBUG] refresh: skipping %s (nextRun %v)", category, state.nextRun)
+			if now.Before(state.NextRun) {
+				log.Printf("[DEBUG] refresh: skipping %s (nextRun %v)", category, state.NextRun)
 				continue
 			}
 
-			endpointType, id, err := parseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
+			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
 			if err != nil {
 				log.Printf("Error parsing category %s: %v", category, err)
 				continue
