@@ -86,7 +86,11 @@ type mwCategoryMembersResponse struct {
 }
 
 func NewWikiClient(apiURL, username, password string, debug bool) (*WikiClient, error) {
-	client, err := mwclient.New(apiURL, "RobloxAPID/1.0 (https://github.com/paradoxum-wikis/RobloxAPID; User:DarkGabonnie)")
+	uaUser, _, _ := strings.Cut(username, "@")
+	client, err := mwclient.New(apiURL, fmt.Sprintf(
+		"RobloxAPID/1.0 (https://github.com/paradoxum-wikis/RobloxAPID; User:%s)",
+		uaUser,
+	))
 	if err != nil {
 		return nil, err
 	}
