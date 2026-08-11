@@ -72,15 +72,16 @@ var staticDocs = []staticDoc{
 
 const iso8601Millis = "2006-01-02T15:04:05.000Z"
 
-func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string) error {
+// returns the category to purge after a successful push
+func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string) (string, error) {
 	urlTemplate, ok := cfg.DynamicEndpoints.APIMap[endpointType]
 	if !ok {
-		return fmt.Errorf("unknown endpoint type: %s", endpointType)
+		return "", fmt.Errorf("unknown endpoint type: %s", endpointType)
 	}
 
 	url, err := formatEndpointURL(endpointType, id, urlTemplate)
 	if err != nil {
-		return err
+		return "", err
 	}
 	path := fmt.Sprintf("%s-%s.json", endpointType, id)
 
@@ -90,7 +91,7 @@ func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	switch endpointType {
 	case "users", "groups", "universes", "places":
 		if cfg.OpenCloud.APIKey == "" {
-			return fmt.Errorf("open cloud api key required for %s", endpointType)
+			return "", fmt.Errorf("open cloud api key required for %s", endpointType)
 		}
 		headers = map[string]string{
 			"x-api-key": cfg.OpenCloud.APIKey,
@@ -101,7 +102,7 @@ func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	if endpointType == "virtual-events" {
 		parsedURL, err := neturl.Parse(url)
 		if err != nil {
-			return fmt.Errorf("invalid virtual-events url %s: %w", url, err)
+			return "", fmt.Errorf("invalid virtual-events url %s: %w", url, err)
 		}
 		query := parsedURL.Query()
 		query.Set("endsBefore", time.Now().UTC().Format(iso8601Millis))
@@ -116,19 +117,14 @@ func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 		headers["Cookie"] = cfg.Roblox.Cookie
 	}
 
-	if headers != nil {
-		newData, err = fetcher.FetchWithHeaders(url, headers)
-	} else {
-		newData, err = fetcher.Fetch(url)
-	}
-
+	newData, err = fetcher.FetchForEndpoint(endpointType, url, headers)
 	if err != nil {
-		return fmt.Errorf("error fetching data from %s: %w", url, err)
+		return "", fmt.Errorf("error fetching data from %s: %w", url, err)
 	}
 
 	hasChanged, err := checker.HasChanged(path, newData)
 	if err != nil {
-		return fmt.Errorf("error checking changes for %s: %w", path, err)
+		return "", fmt.Errorf("error checking changes for %s: %w", path, err)
 	}
 
 	wikiTitle := fmt.Sprintf("%s:roapid/%s-%s.json", cfg.Wiki.Namespace, endpointType, id)
@@ -146,28 +142,24 @@ func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 
 	if !shouldPush {
 		log.Printf("No meaningful changes for %s (only roLastUpdated or none), skipping wiki push.", url)
-		return nil
+		return "", nil
 	}
 
 	log.Printf("Updating data for %s...", url)
 	dataToPush, err := storage.Save(path, newData)
 	if err != nil {
-		return fmt.Errorf("error saving data to %s: %w", path, err)
+		return "", fmt.Errorf("error saving data to %s: %w", path, err)
 	}
 
 	log.Printf("Meaningful changes detected for %s, pushing to wiki.", url)
 	summary := fmt.Sprintf("Automated update from %s", url)
 	err = wikiClient.Push(wikiTitle, string(dataToPush), summary)
 	if err != nil {
-		return fmt.Errorf("error pushing to wiki for %s: %w", wikiTitle, err)
-	}
-
-	if err := wikiClient.PurgeCategoryMembers(category); err != nil {
-		log.Printf("Error purging pages for %s: %v", category, err)
+		return "", fmt.Errorf("error pushing to wiki for %s: %w", wikiTitle, err)
 	}
 
 	log.Printf("Successfully updated %s", wikiTitle)
-	return nil
+	return category, nil
 }
 
 func ProcessAboutEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config) error {

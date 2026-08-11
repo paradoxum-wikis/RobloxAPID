@@ -128,7 +128,11 @@ func main() {
 		workerCount := min(len(tasks), maxEndpointWorkers)
 
 		jobCh := make(chan refreshTask)
-		var wg sync.WaitGroup
+		var (
+			wg      sync.WaitGroup
+			purgeMu sync.Mutex
+			toPurge []string
+		)
 		for range workerCount {
 			wg.Go(func() {
 				for task := range jobCh {
@@ -148,9 +152,15 @@ func main() {
 						if task.startLog != "" {
 							log.Print(task.startLog)
 						}
-						if err := prog.ProcessEndpoint(wikiClient, cfg, task.endpointType, task.id, task.category); err != nil {
+						purgeCat, err := prog.ProcessEndpoint(wikiClient, cfg, task.endpointType, task.id, task.category)
+						if err != nil {
 							log.Printf("Error %s endpoint %s: %v", task.errorPrefix, task.category, err)
 							return
+						}
+						if purgeCat != "" {
+							purgeMu.Lock()
+							toPurge = append(toPurge, purgeCat)
+							purgeMu.Unlock()
 						}
 						prog.UpdateSchedule(processedEndpoints, &mu, task.category, task.endpointType, cfg, time.Time{})
 					}()
@@ -163,6 +173,12 @@ func main() {
 		}
 		close(jobCh)
 		wg.Wait()
+
+		if len(toPurge) > 0 {
+			if err := wikiClient.PurgeCategoryMembersBatch(toPurge); err != nil {
+				log.Printf("Error batch-purging %d categories after refresh: %v", len(toPurge), err)
+			}
+		}
 	}
 
 	startTicker := func(interval time.Duration, name string, fn func()) {
@@ -198,39 +214,26 @@ func main() {
 				if err != nil {
 					continue
 				}
+				if _, ok := cfg.DynamicEndpoints.APIMap[et]; !ok {
+					continue
+				}
 				immediate = append(immediate, toRef{category, et, id})
 			}
 		}
 		mu.Unlock()
 
-		sem := make(chan struct{}, 10)
-		for _, r := range immediate {
-			workers.Add(1)
-			go func(r toRef) {
-				sem <- struct{}{}
-				defer func() { <-sem }()
-				defer workers.Done()
-
-				select {
-				case <-ctx.Done():
-					log.Printf("[DEBUG] bootstrap: skipping %s due to shutdown", r.category)
-					return
-				default:
-				}
-
-				if !tryStartCategory(r.category) {
-					log.Printf("[DEBUG] bootstrap: skipping %s (already in progress)", r.category)
-					return
-				}
-				defer finishCategory(r.category)
-
-				log.Printf("[DEBUG] bootstrap: immediate refresh %s", r.category)
-				if err := prog.ProcessEndpoint(wikiClient, cfg, r.endpointType, r.id, r.category); err != nil {
-					log.Printf("Error refreshing bootstrapped endpoint %s: %v", r.category, err)
-					return
-				}
-				prog.UpdateSchedule(processedEndpoints, &mu, r.category, r.endpointType, cfg, time.Time{})
-			}(r)
+		if len(immediate) > 0 {
+			tasks := make([]refreshTask, 0, len(immediate))
+			for _, r := range immediate {
+				tasks = append(tasks, refreshTask{
+					category:     r.category,
+					endpointType: r.endpointType,
+					id:           r.id,
+					startLog:     "[DEBUG] bootstrap: immediate refresh " + r.category,
+					errorPrefix:  "refreshing bootstrapped",
+				})
+			}
+			runRefreshTasks(tasks)
 		}
 	}
 
@@ -249,6 +252,9 @@ func main() {
 			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
 			if err != nil {
 				log.Printf("Error parsing category %s: %v", category, err)
+				continue
+			}
+			if _, ok := cfg.DynamicEndpoints.APIMap[endpointType]; !ok {
 				continue
 			}
 
@@ -310,6 +316,9 @@ func main() {
 			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
 			if err != nil {
 				log.Printf("Error parsing category %s: %v", category, err)
+				continue
+			}
+			if _, ok := cfg.DynamicEndpoints.APIMap[endpointType]; !ok {
 				continue
 			}
 
