@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"robloxapid/internal/config"
+	"robloxapid/internal/storage"
 )
 
 type EndpointState struct {
@@ -125,8 +126,19 @@ func BootstrapFromData(processed map[string]*EndpointState, mu *sync.Mutex, cfg 
 			continue
 		}
 
-		log.Printf("[DEBUG] bootstrap: scheduling %s from %s", category, name)
-		UpdateSchedule(processed, mu, category, endpointType, cfg, time.Now())
+		nextRun := time.Now()
+		if lastUpdated, ok := storage.ReadRoLastUpdated(name); ok {
+			interval, err := cfg.GetRefreshInterval(endpointType)
+			if err != nil {
+				interval, err = cfg.GetDataRefreshInterval()
+				if err != nil {
+					interval = time.Minute
+				}
+			}
+			nextRun = lastUpdated.Add(interval)
+		}
+		log.Printf("[DEBUG] bootstrap: scheduling %s from %s (nextRun %v)", category, name, nextRun.UTC())
+		UpdateSchedule(processed, mu, category, endpointType, cfg, nextRun)
 		count++
 	}
 

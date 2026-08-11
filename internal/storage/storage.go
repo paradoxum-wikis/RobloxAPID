@@ -9,6 +9,37 @@ import (
 	"time"
 )
 
+func ReadRoLastUpdated(path string) (time.Time, bool) {
+	dataRoot, err := os.OpenRoot("data")
+	if err != nil {
+		return time.Time{}, false
+	}
+	defer dataRoot.Close()
+
+	raw, err := dataRoot.ReadFile(path)
+	if err != nil {
+		return time.Time{}, false
+	}
+
+	var dataMap map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &dataMap); err != nil {
+		return time.Time{}, false
+	}
+	field, ok := dataMap["roLastUpdated"]
+	if !ok {
+		return time.Time{}, false
+	}
+	var ts string
+	if err := json.Unmarshal(field, &ts); err != nil {
+		return time.Time{}, false
+	}
+	parsed, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		return time.Time{}, false
+	}
+	return parsed, true
+}
+
 func Save(path string, data []byte) ([]byte, error) {
 	var dataMap map[string]json.RawMessage
 	if err := json.Unmarshal(data, &dataMap); err != nil {
