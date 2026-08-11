@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +16,15 @@ import (
 	"cgt.name/pkg/go-mwclient"
 	"cgt.name/pkg/go-mwclient/params"
 )
+
+const (
+	maxLagSeconds    = 5
+	minEditInterval  = 200 * time.Millisecond
+	purgeTitlesChunk = 50
+	maxEditAttempts  = 6
+)
+
+var maxLagWaitRe = regexp.MustCompile(`(?i)waiting for [^:]+:\s*([0-9]+(?:\.[0-9]+)?)\s*seconds?`)
 
 type WikiClient struct {
 	client    *mwclient.Client
@@ -119,41 +130,57 @@ func NewWikiClient(apiURL, username, password string, debug bool) (*WikiClient, 
 }
 
 func (w *WikiClient) Push(title, content, summary string) error {
-	w.throttleEdit()
 	log.Printf("[DEBUG] wiki.Push: preparing to push page %s (summary: %s)", title, summary)
-	token, err := w.getCSRFToken(false)
-	if err != nil {
-		log.Printf("[ERROR] wiki.Push: failed to get token for %s: %v", title, err)
-		return err
-	}
 
-	p := params.Values{
-		"action":  "edit",
-		"title":   title,
-		"text":    content,
-		"summary": summary,
-		"bot":     "true",
-		"token":   token,
-	}
+	var lastErr error
+	for attempt := 1; attempt <= maxEditAttempts; attempt++ {
+		w.throttleEdit()
 
-	_, err = w.client.Post(p)
-	if err != nil && isBadTokenError(err) {
-		log.Printf("[DEBUG] wiki.Push: refreshing invalid token for %s", title)
-		token, tokenErr := w.getCSRFToken(true)
-		if tokenErr != nil {
-			log.Printf("[ERROR] wiki.Push: failed to refresh token for %s: %v", title, tokenErr)
-			return tokenErr
+		token, err := w.getCSRFToken(false)
+		if err != nil {
+			log.Printf("[ERROR] wiki.Push: failed to get token for %s: %v", title, err)
+			return err
 		}
-		p["token"] = token
+
+		p := params.Values{
+			"action":  "edit",
+			"title":   title,
+			"text":    content,
+			"summary": summary,
+			"bot":     "true",
+			"token":   token,
+			"maxlag":  strconv.Itoa(maxLagSeconds),
+		}
+
 		_, err = w.client.Post(p)
-	}
-	if err != nil {
+		if err != nil && isBadTokenError(err) {
+			log.Printf("[DEBUG] wiki.Push: refreshing invalid token for %s", title)
+			token, tokenErr := w.getCSRFToken(true)
+			if tokenErr != nil {
+				log.Printf("[ERROR] wiki.Push: failed to refresh token for %s: %v", title, tokenErr)
+				return tokenErr
+			}
+			p["token"] = token
+			_, err = w.client.Post(p)
+		}
+		if err == nil {
+			log.Printf("[INFO] wiki.Push: successfully pushed %s", title)
+			return nil
+		}
+
+		lastErr = err
+		if wait, ok := maxLagWait(err); ok {
+			log.Printf("[WARN] wiki.Push: maxlag on %s (attempt %d/%d), waiting %v: %v", title, attempt, maxEditAttempts, wait, err)
+			time.Sleep(wait)
+			continue
+		}
+
 		log.Printf("[ERROR] wiki.Push: failed to push %s: %v", title, err)
 		return err
 	}
 
-	log.Printf("[INFO] wiki.Push: successfully pushed %s", title)
-	return nil
+	log.Printf("[ERROR] wiki.Push: giving up on %s after %d attempts: %v", title, maxEditAttempts, lastErr)
+	return lastErr
 }
 
 func (w *WikiClient) throttleEdit() {
@@ -162,13 +189,29 @@ func (w *WikiClient) throttleEdit() {
 
 	now := time.Now()
 	if !w.lastEdit.IsZero() {
-		wait := time.Second - now.Sub(w.lastEdit)
-		if wait > 0 {
+		if wait := minEditInterval - now.Sub(w.lastEdit); wait > 0 {
 			time.Sleep(wait)
 			now = time.Now()
 		}
 	}
 	w.lastEdit = now
+}
+
+func maxLagWait(err error) (time.Duration, bool) {
+	if err == nil {
+		return 0, false
+	}
+	msg := err.Error()
+	lower := strings.ToLower(msg)
+	if !strings.Contains(lower, "maxlag") && !strings.Contains(lower, "lag of") {
+		return 0, false
+	}
+	if m := maxLagWaitRe.FindStringSubmatch(msg); len(m) == 2 {
+		if secs, parseErr := strconv.ParseFloat(m[1], 64); parseErr == nil && secs > 0 {
+			return time.Duration(secs * float64(time.Second)), true
+		}
+	}
+	return time.Duration(maxLagSeconds) * time.Second, true
 }
 
 func (w *WikiClient) logRawJSON(label string, rawBody []byte) {
@@ -266,7 +309,7 @@ func (w *WikiClient) SetupRoapiModule(pageTitle, requiredVersion, content string
 		return err
 	}
 
-	firstLine := strings.SplitN(existingContent, "\n", 2)[0]
+	firstLine, _, _ := strings.Cut(existingContent, "\n")
 
 	if !strings.HasPrefix(firstLine, "-- ") {
 		log.Printf("Page %s missing version comment. Overwriting with version %s.", pageTitle, requiredVersion)
@@ -367,21 +410,53 @@ func (w *WikiClient) PurgePages(titles []string) error {
 	if len(titles) == 0 {
 		return nil
 	}
-	p := params.Values{
-		"action": "purge",
-		"titles": strings.Join(titles, "|"),
-		"format": "json",
+	seen := make(map[string]struct{}, len(titles))
+	unique := make([]string, 0, len(titles))
+	for _, t := range titles {
+		if t == "" {
+			continue
+		}
+		if _, ok := seen[t]; ok {
+			continue
+		}
+		seen[t] = struct{}{}
+		unique = append(unique, t)
 	}
-	_, err := w.client.Post(p)
-	return err
+	for i := 0; i < len(unique); i += purgeTitlesChunk {
+		end := min(i+purgeTitlesChunk, len(unique))
+		p := params.Values{
+			"action": "purge",
+			"titles": strings.Join(unique[i:end], "|"),
+			"format": "json",
+		}
+		if _, err := w.client.Post(p); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (w *WikiClient) PurgeCategoryMembers(category string) error {
-	titles, err := w.GetCategoryMembers(category)
-	if err != nil {
-		return err
+func (w *WikiClient) PurgeCategoryMembersBatch(categories []string) error {
+	if len(categories) == 0 {
+		return nil
 	}
-	return w.PurgePages(titles)
+	seenCat := make(map[string]struct{}, len(categories))
+	var allTitles []string
+	for _, category := range categories {
+		if category == "" {
+			continue
+		}
+		if _, ok := seenCat[category]; ok {
+			continue
+		}
+		seenCat[category] = struct{}{}
+		titles, err := w.GetCategoryMembers(category)
+		if err != nil {
+			return fmt.Errorf("list members of %s: %w", category, err)
+		}
+		allTitles = append(allTitles, titles...)
+	}
+	return w.PurgePages(allTitles)
 }
 
 func (w *WikiClient) getCSRFToken(forceRefresh bool) (string, error) {
