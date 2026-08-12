@@ -74,50 +74,13 @@ const iso8601Millis = "2006-01-02T15:04:05.000Z"
 
 // returns the category to purge after a successful push
 func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string, ensureWiki bool) (string, error) {
-	urlTemplate, ok := cfg.DynamicEndpoints.APIMap[endpointType]
-	if !ok {
-		return "", fmt.Errorf("unknown endpoint type: %s", endpointType)
-	}
-
-	url, err := formatEndpointURL(endpointType, id, urlTemplate)
+	url, headers, err := prepareEndpointRequest(cfg, endpointType, id)
 	if err != nil {
 		return "", err
 	}
 	path := fmt.Sprintf("%s-%s.json", endpointType, id)
 
-	var newData []byte
-	var headers map[string]string
-
-	switch endpointType {
-	case "users", "groups", "universes", "places":
-		if cfg.OpenCloud.APIKey == "" {
-			return "", fmt.Errorf("open cloud api key required for %s", endpointType)
-		}
-		headers = map[string]string{
-			"x-api-key": cfg.OpenCloud.APIKey,
-			"Accept":    "application/json",
-		}
-	}
-
-	if endpointType == "virtual-events" {
-		parsedURL, err := neturl.Parse(url)
-		if err != nil {
-			return "", fmt.Errorf("invalid virtual-events url %s: %w", url, err)
-		}
-		query := parsedURL.Query()
-		query.Set("endsBefore", time.Now().UTC().Format(iso8601Millis))
-		parsedURL.RawQuery = query.Encode()
-		url = parsedURL.String()
-	}
-
-	if cfg.Roblox.Cookie != "" {
-		if headers == nil {
-			headers = make(map[string]string)
-		}
-		headers["Cookie"] = cfg.Roblox.Cookie
-	}
-
-	newData, err = fetcher.FetchForEndpoint(endpointType, url, headers)
+	newData, err := fetcher.FetchForEndpoint(endpointType, url, headers)
 	if err != nil {
 		return "", fmt.Errorf("error fetching data from %s: %w", url, err)
 	}
@@ -245,6 +208,50 @@ func SyncStaticDocs(wikiClient *wiki.WikiClient, cfg *config.Config) error {
 		}
 	}
 	return firstErr
+}
+
+func prepareEndpointRequest(cfg *config.Config, endpointType, id string) (string, map[string]string, error) {
+	urlTemplate, ok := cfg.DynamicEndpoints.APIMap[endpointType]
+	if !ok {
+		return "", nil, fmt.Errorf("unknown endpoint type: %s", endpointType)
+	}
+
+	url, err := formatEndpointURL(endpointType, id, urlTemplate)
+	if err != nil {
+		return "", nil, err
+	}
+
+	var headers map[string]string
+	switch endpointType {
+	case "users", "groups", "universes", "places":
+		if cfg.OpenCloud.APIKey == "" {
+			return "", nil, fmt.Errorf("open cloud api key required for %s", endpointType)
+		}
+		headers = map[string]string{
+			"x-api-key": cfg.OpenCloud.APIKey,
+			"Accept":    "application/json",
+		}
+	}
+
+	if endpointType == "virtual-events" {
+		parsedURL, err := neturl.Parse(url)
+		if err != nil {
+			return "", nil, fmt.Errorf("invalid virtual-events url %s: %w", url, err)
+		}
+		query := parsedURL.Query()
+		query.Set("endsBefore", time.Now().UTC().Format(iso8601Millis))
+		parsedURL.RawQuery = query.Encode()
+		url = parsedURL.String()
+	}
+
+	if cfg.Roblox.Cookie != "" {
+		if headers == nil {
+			headers = make(map[string]string)
+		}
+		headers["Cookie"] = cfg.Roblox.Cookie
+	}
+
+	return url, headers, nil
 }
 
 func formatEndpointURL(endpointType, id, template string) (string, error) {

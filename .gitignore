@@ -1,3 +1,4 @@
 robloxapid
 deploy/
 deploy.sh
+*_test.*
