@@ -211,11 +211,8 @@ func main() {
 		mu.Lock()
 		for category, st := range processedEndpoints {
 			if !st.NextRun.IsZero() && !now.Before(st.NextRun) {
-				et, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
+				et, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix, cfg.DynamicEndpoints.APIMap)
 				if err != nil {
-					continue
-				}
-				if _, ok := cfg.DynamicEndpoints.APIMap[et]; !ok {
 					continue
 				}
 				immediate = append(immediate, toRef{category, et, id})
@@ -251,12 +248,9 @@ func main() {
 		now := time.Now()
 		tasks := make([]refreshTask, 0, len(categories))
 		for _, category := range categories {
-			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
+			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix, cfg.DynamicEndpoints.APIMap)
 			if err != nil {
 				log.Printf("Error parsing category %s: %v", category, err)
-				continue
-			}
-			if _, ok := cfg.DynamicEndpoints.APIMap[endpointType]; !ok {
 				continue
 			}
 
@@ -317,12 +311,9 @@ func main() {
 				continue
 			}
 
-			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix)
+			endpointType, id, err := prog.ParseCategory(category, cfg.DynamicEndpoints.CategoryPrefix, cfg.DynamicEndpoints.APIMap)
 			if err != nil {
 				log.Printf("Error parsing category %s: %v", category, err)
-				continue
-			}
-			if _, ok := cfg.DynamicEndpoints.APIMap[endpointType]; !ok {
 				continue
 			}
 

@@ -31,18 +31,31 @@ var categoryNormalizer = strings.NewReplacer(
 	"\u202f", "", // nnbsp
 )
 
-func ParseCategory(category, prefix string) (endpointType, id string, err error) {
+func ParseCategory(category, prefix string, apiMap map[string]string) (endpointType, id string, err error) {
 	normalized := normalizeCategory(category)
 	expectedPrefix := "Category:" + prefix + "-"
 	if len(normalized) < len(expectedPrefix) || !strings.EqualFold(normalized[:len(expectedPrefix)], expectedPrefix) {
 		return "", "", fmt.Errorf("invalid category format: %s", category)
 	}
-	remainder := normalized[len(expectedPrefix):]
-	lastDash := strings.LastIndex(remainder, "-")
-	if lastDash <= 0 || lastDash == len(remainder)-1 {
+	endpointType, id, ok := splitTypeID(normalized[len(expectedPrefix):], apiMap)
+	if !ok {
 		return "", "", fmt.Errorf("invalid category format: %s", category)
 	}
-	return remainder[:lastDash], remainder[lastDash+1:], nil
+	return endpointType, id, nil
+}
+
+func splitTypeID(remainder string, apiMap map[string]string) (typ, id string, ok bool) {
+	for t := range apiMap {
+		if !strings.HasPrefix(remainder, t+"-") {
+			continue
+		}
+		rest := remainder[len(t)+1:]
+		if rest == "" || len(t) < len(typ) {
+			continue
+		}
+		typ, id, ok = t, rest, true
+	}
+	return typ, id, ok
 }
 
 func normalizeCategory(category string) string {
@@ -107,13 +120,8 @@ func BootstrapFromData(processed map[string]*EndpointState, mu *sync.Mutex, cfg 
 			continue
 		}
 		base := strings.TrimSuffix(name, ".json")
-		parts := strings.SplitN(base, "-", 2)
-		if len(parts) != 2 {
-			continue
-		}
-
-		endpointType, id := parts[0], parts[1]
-		if id == "" {
+		endpointType, id, ok := splitTypeID(base, cfg.DynamicEndpoints.APIMap)
+		if !ok {
 			continue
 		}
 
