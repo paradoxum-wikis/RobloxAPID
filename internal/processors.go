@@ -73,7 +73,7 @@ var staticDocs = []staticDoc{
 const iso8601Millis = "2006-01-02T15:04:05.000Z"
 
 // returns the category to purge after a successful push
-func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string) (string, error) {
+func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointType, id, category string, ensureWiki bool) (string, error) {
 	urlTemplate, ok := cfg.DynamicEndpoints.APIMap[endpointType]
 	if !ok {
 		return "", fmt.Errorf("unknown endpoint type: %s", endpointType)
@@ -130,7 +130,7 @@ func ProcessEndpoint(wikiClient *wiki.WikiClient, cfg *config.Config, endpointTy
 	wikiTitle := fmt.Sprintf("%s:roapid/%s-%s.json", cfg.Wiki.Namespace, endpointType, id)
 
 	shouldPush := hasChanged
-	if !hasChanged {
+	if !hasChanged && ensureWiki {
 		exists, err := wikiClient.PageExists(wikiTitle)
 		if err != nil {
 			log.Printf("Error checking if %s exists: %v", wikiTitle, err)

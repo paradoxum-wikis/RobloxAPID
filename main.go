@@ -26,6 +26,7 @@ type refreshTask struct {
 	id           string
 	startLog     string
 	errorPrefix  string
+	ensureWiki   bool
 }
 
 func main() {
@@ -152,7 +153,7 @@ func main() {
 						if task.startLog != "" {
 							log.Print(task.startLog)
 						}
-						purgeCat, err := prog.ProcessEndpoint(wikiClient, cfg, task.endpointType, task.id, task.category)
+						purgeCat, err := prog.ProcessEndpoint(wikiClient, cfg, task.endpointType, task.id, task.category, task.ensureWiki)
 						if err != nil {
 							log.Printf("Error %s endpoint %s: %v", task.errorPrefix, task.category, err)
 							return
@@ -231,6 +232,7 @@ func main() {
 					id:           r.id,
 					startLog:     "[DEBUG] bootstrap: immediate refresh " + r.category,
 					errorPrefix:  "refreshing bootstrapped",
+					ensureWiki:   true,
 				})
 			}
 			runRefreshTasks(tasks)
@@ -268,6 +270,7 @@ func main() {
 					endpointType: endpointType,
 					id:           id,
 					errorPrefix:  "processing new",
+					ensureWiki:   true,
 				})
 			} else if now.After(state.NextRun) {
 				tasks = append(tasks, refreshTask{
@@ -276,6 +279,7 @@ func main() {
 					id:           id,
 					startLog:     "Refreshing endpoint " + category + "...",
 					errorPrefix:  "refreshing",
+					ensureWiki:   true,
 				})
 			}
 		}
