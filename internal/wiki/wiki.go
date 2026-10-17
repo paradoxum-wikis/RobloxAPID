@@ -315,12 +315,13 @@ func (w *WikiClient) SetupRoapiModule(pageTitle, requiredVersion, content string
 
 	firstLine, _, _ := strings.Cut(existingContent, "\n")
 
-	if !strings.HasPrefix(firstLine, "-- ") {
+	existingVersion, ok := strings.CutPrefix(firstLine, "-- ")
+	if !ok {
 		log.Printf("Page %s missing version comment. Overwriting with version %s.", pageTitle, requiredVersion)
 		return w.Push(pageTitle, content, "Updating Roapid module to version "+requiredVersion)
 	}
 
-	existingVersion := strings.TrimSpace(strings.TrimPrefix(firstLine, "-- "))
+	existingVersion = strings.TrimSpace(existingVersion)
 	if existingVersion != requiredVersion {
 		log.Printf("Updating %s: version %s → %s", pageTitle, existingVersion, requiredVersion)
 		return w.Push(pageTitle, content, "Updating Roapid module from "+existingVersion+" to "+requiredVersion)
@@ -426,11 +427,10 @@ func (w *WikiClient) PurgePages(titles []string) error {
 		seen[t] = struct{}{}
 		unique = append(unique, t)
 	}
-	for i := 0; i < len(unique); i += purgeTitlesChunk {
-		end := min(i+purgeTitlesChunk, len(unique))
+	for chunk := range slices.Chunk(unique, purgeTitlesChunk) {
 		p := params.Values{
 			"action": "purge",
-			"titles": strings.Join(unique[i:end], "|"),
+			"titles": strings.Join(chunk, "|"),
 			"format": "json",
 		}
 		if _, err := w.client.Post(p); err != nil {

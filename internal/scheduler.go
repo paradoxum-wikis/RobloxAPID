@@ -1,7 +1,9 @@
 package app
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -102,7 +104,7 @@ func UpdateSchedule(processed map[string]*EndpointState, mu *sync.Mutex, categor
 func BootstrapFromData(processed map[string]*EndpointState, mu *sync.Mutex, cfg *config.Config) {
 	entries, err := os.ReadDir("data")
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			log.Printf("[DEBUG] bootstrap: data directory not found; nothing to schedule yet")
 			return
 		}

@@ -3,7 +3,9 @@ package storage
 import (
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"time"
@@ -56,7 +58,7 @@ func Save(path string, data []byte) ([]byte, error) {
 
 	dataRoot, err := os.OpenRoot("data")
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			if err := os.MkdirAll("data", 0755); err != nil {
 				return nil, err
 			}
@@ -94,7 +96,7 @@ func Save(path string, data []byte) ([]byte, error) {
 	}
 
 	if err := dataRoot.Rename(tempName, path); err != nil {
-		if removeErr := dataRoot.Remove(path); removeErr != nil && !os.IsNotExist(removeErr) {
+		if removeErr := dataRoot.Remove(path); removeErr != nil && !errors.Is(removeErr, fs.ErrNotExist) {
 			return nil, fmt.Errorf("failed to replace %s: %w", filepath.Join("data", path), err)
 		}
 		if err := dataRoot.Rename(tempName, path); err != nil {
