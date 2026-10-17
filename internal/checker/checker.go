@@ -3,6 +3,8 @@ package checker
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,7 +13,7 @@ import (
 func HasChanged(path string, newData []byte) (bool, error) {
 	dataRoot, err := os.OpenRoot("data")
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			log.Printf("[DEBUG] checker.HasChanged: data directory does not exist -> treat as changed")
 			return true, nil
 		}
@@ -24,7 +26,7 @@ func HasChanged(path string, newData []byte) (bool, error) {
 	log.Printf("[DEBUG] checker.HasChanged: checking %s", fullPath)
 	oldData, err := dataRoot.ReadFile(path)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			log.Printf("[DEBUG] checker.HasChanged: file does not exist -> treat as changed: %s", fullPath)
 			return true, nil
 		}
@@ -57,7 +59,17 @@ func equalIgnoringRo(oldDataMap, newDataMap map[string]json.RawMessage) bool {
 			continue
 		}
 		newValue, ok := newDataMap[key]
-		if !ok || !bytes.Equal(oldValue, newValue) {
+		if !ok {
+			return false
+		}
+		// stored files are indented by storage.Save
+		// while API responses are compact lmao
+		var oldCompact, newCompact bytes.Buffer
+		if json.Compact(&oldCompact, oldValue) != nil || json.Compact(&newCompact, newValue) != nil {
+			if !bytes.Equal(oldValue, newValue) {
+				return false
+			}
+		} else if !bytes.Equal(oldCompact.Bytes(), newCompact.Bytes()) {
 			return false
 		}
 	}
