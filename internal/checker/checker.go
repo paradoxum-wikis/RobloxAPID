@@ -37,25 +37,9 @@ func HasChanged(path string, newData []byte) (bool, error) {
 		return false, nil
 	}
 
-	var oldDataMap map[string]json.RawMessage
-	if err := json.Unmarshal(oldData, &oldDataMap); err != nil {
-		eq := bytes.Equal(oldData, newData)
-		if eq {
-			log.Printf("[DEBUG] checker.HasChanged: raw compare -> unchanged: %s", fullPath)
-			return false, nil
-		}
-		log.Printf("[DEBUG] checker.HasChanged: raw compare -> changed: %s", fullPath)
-		return true, nil
-	}
-
-	var newDataMap map[string]json.RawMessage
-	if err := json.Unmarshal(newData, &newDataMap); err != nil {
-		eq := bytes.Equal(oldData, newData)
-		if eq {
-			log.Printf("[DEBUG] checker.HasChanged: new data unmarshal failed but raw compare -> unchanged: %s", fullPath)
-			return false, nil
-		}
-		log.Printf("[DEBUG] checker.HasChanged: new data unmarshal failed but raw compare -> changed: %s", fullPath)
+	var oldDataMap, newDataMap map[string]json.RawMessage
+	if json.Unmarshal(oldData, &oldDataMap) != nil || json.Unmarshal(newData, &newDataMap) != nil {
+		log.Printf("[DEBUG] checker.HasChanged: unparseable JSON, raw compare -> changed: %s", fullPath)
 		return true, nil
 	}
 	changed := !equalIgnoringRo(oldDataMap, newDataMap)
